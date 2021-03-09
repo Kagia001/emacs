@@ -1,0 +1,177 @@
+;; Ignore this
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("e29a6c66d4c383dbda21f48effe83a1c2a1058a17ac506d60889aba36685ed94" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default))
+ '(package-selected-packages
+   '(ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(whitespace-tab ((t (:foreground "#636363")))))
+
+
+;; Initialise package system
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+
+
+;; Basic config
+
+;; Remove clutter
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
+(tool-bar-mode -1)
+
+;; Indentation
+(setq custom-tab-width 4)
+(setq-default python-indent-offset custom-tab-width)
+(setq-default evil-shift-width custom-tab-width)
+
+;; Whitespace mode
+(defun disable-tabs () (setq indent-tabs-mode nil))
+(defun enable-tabs  ()
+  (interactive)
+  (local-set-key (kbd "TAB") 'tab-to-tab-stop)
+  (setq indent-tabs-mode t)
+  (setq tab-width custom-tab-width))
+
+(add-hook 'prog-mode-hook 'enable-tabs)
+(add-hook 'lisp-mode-hook 'disable-tabs)
+(add-hook 'emacs-lisp-mode-hook 'disable-tabs)
+
+(setq backward-delete-char-untabify-method 'hungry)
+
+(setq whitespace-style '(face tabs tab-mark trailing indent))
+
+(setq whitespace-display-mappings
+      '((tab-mark 9 [124 9] [92 9])))
+(global-whitespace-mode 1)
+
+;; Other
+(setq-default left-fringe-width 50)
+(setq-default right-fringe-width 50)
+(add-to-list 'default-frame-alist '(font . "fira code nerd font 13"))
+(desktop-save-mode 1)
+(show-paren-mode 1)
+;; (ido-mode 1)
+(electric-pair-mode 1)
+;; (server-start)
+
+
+;; Packages
+(use-package xah-fly-keys
+  :config
+  (xah-fly-keys-set-layout "colemak-mod-dh-new")
+  (xah-fly-keys 1)
+  (define-key xah-fly-key-map (kbd "4") 'split-window-right)
+  (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
+  (define-key xah-fly-e-keymap (kbd "t") 'treemacs))
+
+(use-package ivy
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t))
+
+(use-package swiper)
+
+(use-package counsel
+  :config
+  (counsel-mode 1))
+
+(use-package atom-one-dark-theme
+  :config
+  (load-theme 'atom-one-dark t))
+
+(use-package smart-mode-line-atom-one-dark-theme)
+(use-package smart-mode-line
+  :config
+  (setq sml/theme 'atom-one-dark)
+  (sml/setup))
+
+(use-package smart-tabs-mode
+  :config
+  (smart-tabs-mode 1))
+
+(use-package aggressive-indent
+  :config
+  (global-aggressive-indent-mode 1))
+
+
+(use-package treemacs
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (progn
+    (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay      0.5
+          treemacs-directory-name-transformer    #'identity
+          treemacs-display-in-side-window        t
+          treemacs-eldoc-display                 t
+          treemacs-file-event-delay              5000
+          treemacs-file-extension-regex          treemacs-last-period-regex-value
+          treemacs-file-follow-delay             0.2
+          treemacs-file-name-transformer         #'identity
+          treemacs-follow-after-init             t
+          treemacs-git-command-pipe              ""
+          treemacs-goto-tag-strategy             'refetch-index
+          treemacs-indentation                   2
+          treemacs-indentation-string            " "
+          treemacs-is-never-other-window         nil
+          treemacs-max-git-entries               5000
+          treemacs-missing-project-action        'ask
+          treemacs-move-forward-on-expand        nil
+          treemacs-no-png-images                 nil
+          treemacs-no-delete-other-windows       t
+          treemacs-project-follow-cleanup        nil
+          treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                      'left
+          treemacs-read-string-input             'from-child-frame
+          treemacs-recenter-distance             0.1
+          treemacs-recenter-after-file-follow    nil
+          treemacs-recenter-after-tag-follow     nil
+          treemacs-recenter-after-project-jump   'always
+          treemacs-recenter-after-project-expand 'on-distance
+          treemacs-show-cursor                   nil
+          treemacs-show-hidden-files             t
+          treemacs-silent-filewatch              nil
+          treemacs-silent-refresh                nil
+          treemacs-sorting                       'alphabetic-asc
+          treemacs-space-between-root-nodes      t
+          treemacs-tag-follow-cleanup            t
+          treemacs-tag-follow-delay              1.5
+          treemacs-user-mode-line-format         nil
+          treemacs-user-header-line-format       nil
+          treemacs-width                         20
+          treemacs-workspace-switch-cleanup      nil)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode 'always)
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple))))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))

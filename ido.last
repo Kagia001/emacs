@@ -1,0 +1,26 @@
+;;; -*- coding: utf-8 -*-
+
+;; ----- ido-last-directory-list -----
+(
+ ("/home/karl/" . ".emacs.d/")
+)
+
+;; ----- ido-work-directory-list -----
+(
+ "/home/karl/.emacs.d/"
+)
+
+;; ----- ido-work-file-list -----
+(
+ "init.el"
+)
+
+;; ----- ido-dir-file-cache -----
+(
+ ("/home/karl/.emacs.d/" (24647 49659 609932 390000) ".#init.el" "../" "init.el" "auto-save-list/" "#init.el#" "ido.last" "elpa/" "lisp/" ".emacs.desktop" "./" ".emacs.desktop.lock" ".cache/" "ido.last~" "init.el~")
+
+ ("/home/karl/" (24647 48597 153290 774000) ".pki/" "dotfiles/" "Templates/" "bin/" "spotifyd_log" ".password-store/" "../" ".Xresources" ".yarnrc" "log.txt" ".zsh_history" "Downloads/" ".vpython-root/" ".pulse/" "start-applications-log" ".git-credentials" ".cargo/" ".nvidia-settings-rc" ".lesshst" "dmesg-with-weird-usb" "git/" "Desktop/" ".config/" "mount/" "Team 17 Digital ltd_/" ".p10k.zsh" ".antigen/" "todo" ".gnome/" ".xmonad/" ".minecraft/" ".openshot_qt/" ".wget-hsts" ".lyrics/" ".python_history" "META-INF/" ".zcompdump-KarlsArch-5.8" ".log/" ".zshrc.pre-oh-my-zsh" ".atom/" ".bashrc" "conf/" "MultiMC/" "evilmaps" "Documents/" ".gitconfig" ".gradle/" ".steam/" "lame" ".kotlinc_history" ".nv/" ".bash_history" ".multimc/" ".Xauthority" "Music/" ".vscode-oss/" "log/" ".gnupg/" "nohup.out" "..ini" ".ftba/" ".hunter/" "FTBA/" "vst/" ".xmerges" "crontab_log" ".Xmodmap" ".install4j" ".java/" ".steampath" ".gmrun_history" ".zinit/" "test.kts" ".vim/" ".less" "skole/" ".asoundrc" "Pictures/" ".rustup/" "TestKt.class" "Screenshots/" ".histfile" ".gsutil/" ".nvm/" ".wine/" ".ftblauncher/" "proton/" "Videos/" ".kchmviewer/" ".zshrc" "./" "local.txt" "test.py~" "old-arch-linux/" ".steampid" ".cache/" ".mozilla/" "Public/" ".bash_profile" ".vpython_cipd_cache/" "test.py" "test.jar" ".surf/" ".viminfo" ".mputils/" ".local/" ".byobu/" ".ssh/" ".mplayer/" ".emacs.d/" ".npmrc" "Fading Sun-WOq84wCJajc.webm" ".pkg-cache/" ".npm/" ".psensor/" "#test.py#" ".xinitrc" ".zcompdump")
+)
+
+;; ----- ido-unc-hosts-cache -----
+t
