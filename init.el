@@ -7,7 +7,7 @@
  '(custom-safe-themes
    '("e29a6c66d4c383dbda21f48effe83a1c2a1058a17ac506d60889aba36685ed94" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default))
  '(package-selected-packages
-   '(ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
+   '(lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -25,7 +25,7 @@
 ;; Initialise package system
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(add-to-list 'load-path "~/.emacs.d/lisp/spotify.el")
+
 (package-initialize)
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -78,15 +78,22 @@
 ;; (server-start)
 
 
+
 ;; Packages
 (use-package xah-fly-keys               ; Keybinds
+  ;; When reading defaults, all keys are dvorak. Here, with xah-fly-x-key-map (kbd "y"), x is dvorak, y is your own.
   :config
   (xah-fly-keys-set-layout "colemak-mod-dh-new")
   (xah-fly-keys 1)
   (define-key xah-fly-key-map (kbd "4") 'split-window-right)
   (define-key xah-fly-key-map (kbd "/") 'swiper)
   (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
-  (define-key xah-fly-e-keymap (kbd "t") 'treemacs))
+  (define-key xah-fly-e-keymap (kbd "t") 'treemacs)
+  (define-key xah-fly-dot-keymap (kbd "n") 'hs-hide-block)
+  (define-key xah-fly-dot-keymap (kbd "e") 'hs-show-block)
+  (define-key xah-fly-dot-keymap (kbd "N") 'hs-hide-all)
+  (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
+  )
 
 (use-package ivy                        ; Completion framework
   :config
@@ -99,11 +106,6 @@
 (use-package counsel                    ; Better alternatives for some completion
   :config
   (counsel-mode 1))
-
-(require 'spotify
-         (setq spotify-oauth2-client-secret (get-string-from-file "~/.emacs.d/spotify-secret"))
-         (setq spotify-oauth2-client-id (get-string-from-file "~/.emacs.d/spotify-id"))
-         (define-key spotify-mode-map (kbd "C-c .") 'spotify-command-map))
 
 (use-package atom-one-dark-theme        ; Theme
   :config
@@ -123,6 +125,7 @@
   :config
   (global-aggressive-indent-mode 1))
 
+(use-package lua-mode)
 
 (use-package treemacs                   ; File tree
   :init

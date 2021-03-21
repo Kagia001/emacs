@@ -15,10 +15,17 @@
  ;; If there is more than one, they won't work right.
  '(whitespace-tab ((t (:foreground "#636363")))))
 
+;; Custom Functions
+(defun get-string-from-file (filePath)
+  "Return filePath's file content."
+  (with-temp-buffer
+    (insert-file-contents filePath)
+    (buffer-string)))
 
 ;; Initialise package system
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+
 (package-initialize)
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -30,16 +37,16 @@
 ;; Basic config
 
 ;; Remove clutter
-(menu-bar-mode -1)
-(toggle-scroll-bar -1)
-(tool-bar-mode -1)
+(menu-bar-mode -1)                      ; Remove menu line at the top
+(toggle-scroll-bar -1)                  ; Remove scroll bar
+(tool-bar-mode -1)                      ; Remove tool bar
 
-;; Indentation
+;; Indentation width
 (setq custom-tab-width 4)
 (setq-default python-indent-offset custom-tab-width)
 (setq-default evil-shift-width custom-tab-width)
 
-;; Whitespace mode
+;; Whitespace mode, displays tabs as |
 (defun disable-tabs () (setq indent-tabs-mode nil))
 (defun enable-tabs  ()
   (interactive)
@@ -60,57 +67,75 @@
 (global-whitespace-mode 1)
 
 ;; Other
-(setq-default left-fringe-width 50)
-(setq-default right-fringe-width 50)
-(add-to-list 'default-frame-alist '(font . "fira code nerd font 13"))
-(desktop-save-mode 1)
-(show-paren-mode 1)
+(setq-default left-fringe-width 50)     ; Left padding
+(setq-default right-fringe-width 50)    ; Right padding
+(add-to-list 'default-frame-alist '(font . "fira code nerd font 13")) ; Font needs to have this list format to work as daemon
+(desktop-save-mode 1)                   ; Remember which buffers are open after closing emacs
+(show-paren-mode 1)                                      ; Highlight paranthesees
+(define-key key-translation-map (kbd "ESC") (kbd "C-g")) ; Escape key = C-g to cancel minibuffer etc.
 ;; (ido-mode 1)
-(electric-pair-mode 1)
+(electric-pair-mode 1)                  ; Match second bracket, quotes, etc. where it makes sense
 ;; (server-start)
 
 
+
 ;; Packages
-(use-package xah-fly-keys
+(use-package xah-fly-keys               ; Keybinds
+  ;; When reading defaults, all keys are dvorak. Here, with xah-fly-x-key-map (kbd "y"), x is dvorak, y is your own.
   :config
   (xah-fly-keys-set-layout "colemak-mod-dh-new")
   (xah-fly-keys 1)
   (define-key xah-fly-key-map (kbd "4") 'split-window-right)
+  (define-key xah-fly-key-map (kbd "/") 'swiper)
   (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
-  (define-key xah-fly-e-keymap (kbd "t") 'treemacs))
+  (define-key xah-fly-e-keymap (kbd "t") 'treemacs)
+  (define-key xah-fly-dot-keymap (kbd "n") 'hs-hide-block)
+  (define-key xah-fly-dot-keymap (kbd "e") 'hs-show-block)
+  (define-key xah-fly-dot-keymap (kbd "N") 'hs-hide-all)
+  (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
+  )
 
-(use-package ivy
+(use-package ivy                        ; Completion framework
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t))
 
-(use-package swiper)
+(use-package swiper)                    ; Alternative isearch
 
-(use-package counsel
+(use-package counsel                    ; Better alternatives for some completion
   :config
   (counsel-mode 1))
 
-(use-package atom-one-dark-theme
+;; (use-package request)
+;; (use-package simple-httpd)
+(add-to-list 'load-path "/home/karl/git/spotify.el")
+;; (require 'spotify)
+;; (setq spotify-oauth2-client-secret "0c7219c7de4a429da636623cd4b11248")
+;; (setq spotify-oauth2-client-id "925cea2e5a994622ae4b6d83fb12f06e")
+;; (define-key spotify-mode-map (kbd "C-c .") 'spotify-command-map)
+
+(use-package atom-one-dark-theme        ; Theme
   :config
   (load-theme 'atom-one-dark t))
 
 (use-package smart-mode-line-atom-one-dark-theme)
-(use-package smart-mode-line
+(use-package smart-mode-line            ; Good looking modeline
   :config
   (setq sml/theme 'atom-one-dark)
   (sml/setup))
 
-(use-package smart-tabs-mode
+(use-package smart-tabs-mode            ; Better tab for indent
   :config
   (smart-tabs-mode 1))
 
-(use-package aggressive-indent
+(use-package aggressive-indent          ; Always indent
   :config
   (global-aggressive-indent-mode 1))
 
+(use-package lua-mode)
 
-(use-package treemacs
+(use-package treemacs                   ; File tree
   :init
   (with-eval-after-load 'winum
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
