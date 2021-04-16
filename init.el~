@@ -6,14 +6,12 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("e29a6c66d4c383dbda21f48effe83a1c2a1058a17ac506d60889aba36685ed94" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default))
+ '(global-whitespace-mode nil)
+ '(highlight-indent-guides-character 124)
+ '(highlight-indent-guides-method 'character)
+ '(highlight-indent-guides-responsive 'top)
  '(package-selected-packages
-   '(ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(whitespace-tab ((t (:foreground "#636363")))))
+   '(lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
 
 ;; Custom Functions
 (defun get-string-from-file (filePath)
@@ -25,7 +23,6 @@
 ;; Initialise package system
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-
 (package-initialize)
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -41,12 +38,11 @@
 (toggle-scroll-bar -1)                  ; Remove scroll bar
 (tool-bar-mode -1)                      ; Remove tool bar
 
-;; Indentation width
+;; Indentation stuff
 (setq custom-tab-width 4)
 (setq-default python-indent-offset custom-tab-width)
 (setq-default evil-shift-width custom-tab-width)
 
-;; Whitespace mode, displays tabs as |
 (defun disable-tabs () (setq indent-tabs-mode nil))
 (defun enable-tabs  ()
   (interactive)
@@ -58,13 +54,9 @@
 (add-hook 'lisp-mode-hook 'disable-tabs)
 (add-hook 'emacs-lisp-mode-hook 'disable-tabs)
 
+
+
 (setq backward-delete-char-untabify-method 'hungry)
-
-(setq whitespace-style '(face tabs tab-mark trailing indent))
-
-(setq whitespace-display-mappings
-      '((tab-mark 9 [124 9] [92 9])))
-(global-whitespace-mode 1)
 
 ;; Other
 (setq-default left-fringe-width 50)     ; Left padding
@@ -95,6 +87,15 @@
   (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
   )
 
+(use-package lsp-ui)
+(use-package lsp-mode)
+
+(use-package company
+  :config
+  (setq company-idle-delay 0.0)
+  :init
+  (add-hook 'prog-mode-hook 'company-mode))
+
 (use-package ivy                        ; Completion framework
   :config
   (ivy-mode 1)
@@ -107,13 +108,9 @@
   :config
   (counsel-mode 1))
 
-;; (use-package request)
-;; (use-package simple-httpd)
-(add-to-list 'load-path "/home/karl/git/spotify.el")
-;; (require 'spotify)
-;; (setq spotify-oauth2-client-secret "0c7219c7de4a429da636623cd4b11248")
-;; (setq spotify-oauth2-client-id "925cea2e5a994622ae4b6d83fb12f06e")
-;; (define-key spotify-mode-map (kbd "C-c .") 'spotify-command-map)
+(use-package highlight-indent-guides
+  :config
+  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
 
 (use-package atom-one-dark-theme        ; Theme
   :config
@@ -200,3 +197,9 @@
         ("C-x t B"   . treemacs-bookmark)
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

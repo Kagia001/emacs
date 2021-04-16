@@ -6,14 +6,12 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("e29a6c66d4c383dbda21f48effe83a1c2a1058a17ac506d60889aba36685ed94" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default))
+ '(global-whitespace-mode nil)
+ '(highlight-indent-guides-character 124)
+ '(highlight-indent-guides-method 'character)
+ '(highlight-indent-guides-responsive 'top)
  '(package-selected-packages
-   '(lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(whitespace-tab ((t (:foreground "#636363")))))
+   '(lsp-ui lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
 
 ;; Custom Functions
 (defun get-string-from-file (filePath)
@@ -25,7 +23,6 @@
 ;; Initialise package system
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-
 (package-initialize)
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -41,12 +38,11 @@
 (toggle-scroll-bar -1)                  ; Remove scroll bar
 (tool-bar-mode -1)                      ; Remove tool bar
 
-;; Indentation width
+;; Indentation stuff
 (setq custom-tab-width 4)
 (setq-default python-indent-offset custom-tab-width)
 (setq-default evil-shift-width custom-tab-width)
 
-;; Whitespace mode, displays tabs as |
 (defun disable-tabs () (setq indent-tabs-mode nil))
 (defun enable-tabs  ()
   (interactive)
@@ -58,13 +54,9 @@
 (add-hook 'lisp-mode-hook 'disable-tabs)
 (add-hook 'emacs-lisp-mode-hook 'disable-tabs)
 
+
+
 (setq backward-delete-char-untabify-method 'hungry)
-
-(setq whitespace-style '(face tabs tab-mark trailing indent))
-
-(setq whitespace-display-mappings
-      '((tab-mark 9 [124 9] [92 9])))
-(global-whitespace-mode 1)
 
 ;; Other
 (setq-default left-fringe-width 50)     ; Left padding
@@ -77,35 +69,60 @@
 (electric-pair-mode 1)                  ; Match second bracket, quotes, etc. where it makes sense
 ;; (server-start)
 
+;; Keybinds
+
+(global-set-key (kbd "<return>") 'newline) ; Enter is bound to C-m by default
+
+(global-set-key (kbd "C-a") 'execute-extended-command)
+;;(define-key input-decode-map "\C-m" [C-m])
+(global-set-key (kbd "C-m") 'backward-char)
+(global-set-key (kbd "C-n") 'next-line)
+(global-set-key (kbd "C-e") 'previous-line)
+(global-set-key (kbd "C-i") 'forward-char)
 
 
 ;; Packages
-(use-package xah-fly-keys               ; Keybinds
-  ;; When reading defaults, all keys are dvorak. Here, with xah-fly-x-key-map (kbd "y"), x is dvorak, y is your own.
-  :config
-  (xah-fly-keys-set-layout "colemak-mod-dh-new")
-  (xah-fly-keys 1)
-  (define-key xah-fly-key-map (kbd "4") 'split-window-right)
-  (define-key xah-fly-key-map (kbd "/") 'swiper)
-  (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
-  (define-key xah-fly-e-keymap (kbd "t") 'treemacs)
-  (define-key xah-fly-dot-keymap (kbd "n") 'hs-hide-block)
-  (define-key xah-fly-dot-keymap (kbd "e") 'hs-show-block)
-  (define-key xah-fly-dot-keymap (kbd "N") 'hs-hide-all)
-  (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
-  )
+;; (use-package xah-fly-keys               ; Keybinds
+;; When reading defaults, all keys are dvorak. Here, with xah-fly-x-key-map (kbd "y"), x is dvorak, y is your own.
+;; :config
+;; (xah-fly-keys-set-layout "colemak-mod-dh-new")
+;; (xah-fly-keys 1)
+;; (define-key xah-fly-key-map (kbd "4") 'split-window-right)
+;; (define-key xah-fly-key-map (kbd "/") 'swiper)
+;; (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
+;; (define-key xah-fly-e-keymap (kbd "t") 'treemacs)
+;; (define-key xah-fly-dot-keymap (kbd "n") 'hs-hide-block)
+;; (define-key xah-fly-dot-keymap (kbd "e") 'hs-show-block)
+;; (define-key xah-fly-dot-keymap (kbd "N") 'hs-hide-all)
+;; (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
+;; )
 
-(use-package ivy                        ; Completion framework
-  :config
-  (ivy-mode 1)
-  (setq ivy-use-virtual-buffers t)
-  (setq enable-recursive-minibuffers t))
+(use-package lsp-ui)
+(use-package lsp-mode)
 
-(use-package swiper)                    ; Alternative isearch
-
-(use-package counsel                    ; Better alternatives for some completion
+(use-package company
   :config
-  (counsel-mode 1))
+  (setq company-idle-delay 0.0)
+  :init
+  (add-hook 'prog-mode-hook 'company-mode))
+
+                                        ;(use-package ivy                        ; Completion framework
+                                        ;:config
+                                        ;(ivy-mode 1)
+                                        ;(setq ivy-use-virtual-buffers t)
+                                        ;(setq enable-recursive-minibuffers t)
+                                        ;)
+
+                                        ;(use-package swiper)                    ; Alternative isearch
+
+                                        ;(use-package counsel                    ; Better alternatives for some completion
+                                        ;:config
+                                        ;(counsel-mode 1)
+                                        ;)
+
+(use-package highlight-indent-guides
+  :config
+  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
 
 (use-package atom-one-dark-theme        ; Theme
   :config
@@ -192,3 +209,9 @@
         ("C-x t B"   . treemacs-bookmark)
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
