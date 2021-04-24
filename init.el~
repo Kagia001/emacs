@@ -11,7 +11,7 @@
  '(highlight-indent-guides-method 'character)
  '(highlight-indent-guides-responsive 'top)
  '(package-selected-packages
-   '(lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
+   '(company-tabnine flycheck aggressive-indent lsp-ui lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
 
 ;; Custom Functions
 (defun get-string-from-file (filePath)
@@ -39,21 +39,15 @@
 (tool-bar-mode -1)                      ; Remove tool bar
 
 ;; Indentation stuff
+
+(use-package aggressive-indent          ; Always indent
+  :config
+  (global-aggressive-indent-mode 1))
+
 (setq custom-tab-width 4)
 (setq-default python-indent-offset custom-tab-width)
 (setq-default evil-shift-width custom-tab-width)
-
-(defun disable-tabs () (setq indent-tabs-mode nil))
-(defun enable-tabs  ()
-  (interactive)
-  (local-set-key (kbd "TAB") 'tab-to-tab-stop)
-  (setq indent-tabs-mode t)
-  (setq tab-width custom-tab-width))
-
-(add-hook 'prog-mode-hook 'enable-tabs)
-(add-hook 'lisp-mode-hook 'disable-tabs)
-(add-hook 'emacs-lisp-mode-hook 'disable-tabs)
-
+(setq-default indent-tabs-mode nil)
 
 
 (setq backward-delete-char-untabify-method 'hungry)
@@ -65,33 +59,43 @@
 (desktop-save-mode 1)                   ; Remember which buffers are open after closing emacs
 (show-paren-mode 1)                                      ; Highlight paranthesees
 (define-key key-translation-map (kbd "ESC") (kbd "C-g")) ; Escape key = C-g to cancel minibuffer etc.
-;; (ido-mode 1)
 (electric-pair-mode 1)                  ; Match second bracket, quotes, etc. where it makes sense
 ;; (server-start)
 
 
 
-;; Packages
-(use-package xah-fly-keys               ; Keybinds
-  ;; When reading defaults, all keys are dvorak. Here, with xah-fly-x-key-map (kbd "y"), x is dvorak, y is your own.
-  :config
-  (xah-fly-keys-set-layout "colemak-mod-dh-new")
-  (xah-fly-keys 1)
-  (define-key xah-fly-key-map (kbd "4") 'split-window-right)
-  (define-key xah-fly-key-map (kbd "/") 'swiper)
-  (define-key xah-fly-leader-key-map (kbd "4") 'split-window-below)
-  (define-key xah-fly-e-keymap (kbd "t") 'treemacs)
-  (define-key xah-fly-dot-keymap (kbd "n") 'hs-hide-block)
-  (define-key xah-fly-dot-keymap (kbd "e") 'hs-show-block)
-  (define-key xah-fly-dot-keymap (kbd "N") 'hs-hide-all)
-  (define-key xah-fly-dot-keymap (kbd "E") 'hs-show-all)
-  )
+;; Keybinds
 
+(global-set-key (kbd "<return>") 'newline)                                      ; Enter is bound to C-m by default.
+(define-key input-decode-map [?\C-i] [C-i])                                     ; C-i is bound to tab by default. Different just because.
+
+(global-set-key (kbd "C-a") 'execute-extended-command)
+(global-set-key (kbd "C-m") 'backward-char)
+(global-set-key (kbd "C-n") 'next-line)
+(global-set-key (kbd "C-e") 'previous-line)
+(global-set-key (kbd "<C-i>") 'forward-char)
+(global-set-key (kbd "C-S-m") 'beginning-of-line-text)
+(global-set-key (kbd "C-S-i") 'end-of-line)
+
+(global-set-key (kbd "C-u") 'undo)
+(global-set-key (kbd "C-c") 'kill-region)
+(global-set-key (kbd "C-d") 'kill-ring-save)
+(global-set-key (kbd "C-v") 'yank)
+(global-set-key (kbd "<C-tab>") 'next-buffer)
+(global-set-key (kbd "<C-iso-lefttab>") 'previous-buffer)
+(global-set-key (kbd "C-o") 'find-file)
+
+;; Packages
+
+(use-package flycheck)
 (use-package lsp-ui)
 (use-package lsp-mode)
 
-(use-package company
+  (use-package company-tabnine)
+(use-package company                    ; Tab completion
+  :after (company-tabnine)
   :config
+  (add-to-list 'company-backends #'company-tabnine)
   (setq company-idle-delay 0.0)
   :init
   (add-hook 'prog-mode-hook 'company-mode))
@@ -100,7 +104,8 @@
   :config
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
-  (setq enable-recursive-minibuffers t))
+  (setq enable-recursive-minibuffers t)
+  (define-key ivy-minibuffer-map (kbd "<return>") (kbd "C-m")))
 
 (use-package swiper)                    ; Alternative isearch
 
@@ -112,9 +117,9 @@
   :config
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
 
-(use-package atom-one-dark-theme        ; Theme
+(use-package ayu-theme                  ; Theme
   :config
-  (load-theme 'atom-one-dark t))
+  (load-theme 'ayu-light t))
 
 (use-package smart-mode-line-atom-one-dark-theme)
 (use-package smart-mode-line            ; Good looking modeline
@@ -122,13 +127,10 @@
   (setq sml/theme 'atom-one-dark)
   (sml/setup))
 
-(use-package smart-tabs-mode            ; Better tab for indent
-  :config
-  (smart-tabs-mode 1))
+                                        ;(use-package smart-tabs-mode            ; Better tab for indent
+                                        ;  :config
+                                        ;  (smart-tabs-mode 1))
 
-(use-package aggressive-indent          ; Always indent
-  :config
-  (global-aggressive-indent-mode 1))
 
 (use-package lua-mode)
 
