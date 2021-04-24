@@ -79,6 +79,12 @@
 (global-set-key (kbd "C-S-m") 'beginning-of-line-text)
 (global-set-key (kbd "C-S-i") 'end-of-line)
 
+(global-set-key (kbd "C-q") 'delete-window)
+(global-set-key (kbd "C-S-q") 'delete-other-windows)
+(global-set-key (kbd "C-w") 'split-window-below)
+(global-set-key (kbd "C-f") 'split-window-right)
+(global-set-key (kbd "C-p") 'other-window)
+
 (global-set-key (kbd "C-u") 'undo)
 (global-set-key (kbd "C-c") 'kill-region)
 (global-set-key (kbd "C-d") 'kill-ring-save)
@@ -87,7 +93,7 @@
 (global-set-key (kbd "<C-iso-lefttab>") 'previous-buffer)
 (global-set-key (kbd "C-o") 'find-file)
 (global-set-key (kbd "C-/") 'swiper)
-
+(global-set-key (kbd "C-t") 'switch-to-buffer)
 ;; Packages
 
 (use-package flycheck)
