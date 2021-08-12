@@ -11,7 +11,7 @@
  '(highlight-indent-guides-method 'character)
  '(highlight-indent-guides-responsive 'top)
  '(package-selected-packages
-   '(ayu-theme company-tabnine flycheck aggressive-indent lsp-ui lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
+   '(lsp-java yaml-mode ayu-theme company-tabnine flycheck aggressive-indent lsp-ui lsp-mode company company-mode highlight-indent-guides highlight-indentat-guides lua-mode ivy treemacs smart-tabs-mode smart-mode-line xah-fly-keys use-package)))
 
 ;; Custom Functions
 (defun get-string-from-file (filePath)
@@ -99,8 +99,11 @@
 (use-package flycheck)
 (use-package lsp-ui)
 (use-package lsp-mode)
+(use-package lsp-java
+  :init
+  (add-hook 'java-mode-hook #'lsp))
 
-  (use-package company-tabnine)
+(use-package company-tabnine)
 (use-package company                    ; Tab completion
   :after (company-tabnine)
   :config
@@ -134,6 +137,7 @@
 
 
 (use-package lua-mode)
+(use-package yaml-mode)
 
 (use-package treemacs                   ; File tree
   :init
