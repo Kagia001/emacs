@@ -1,0 +1,10 @@
+.cache
+.emacs.desktop*
+.local
+auto-save-list
+elpa
+history
+*~
+persp-confs
+project*
+straight
