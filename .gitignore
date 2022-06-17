@@ -1,6 +1,7 @@
 .cache
 .emacs.desktop*
 .local
+.casc
 auto-save-list
 elpa
 history

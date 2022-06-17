@@ -1,12 +1,13 @@
-;; TODO liguatures / pretty mode
-;; TODO lsp/completion/error checking
+;; TODO company kinda wonkey but works
 ;; TODO color hex colors
+;; TODO -nw support
+;; mickeynp/combobulate
 ;; TODO modernemacs.com
 ;; TODO svg todo and header
 ;;; Init stuff
-(add-to-list 'load-path "~/.emacs.d/conf") ; Add init scripts to load path
+;; (add-to-list 'load-path "~/.emacs.d/my-packages/tree-sitter-langs")
 
-;; Increasing garbage collection threshold during startup significantly lowers init times.
+;; ;; Increasing garbage collection threshold during startup significantly lowers init times.
 (setq gc-cons-threshold (* 50 1000 1000))	; 100MB
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000)))) ; 2MB
 
@@ -26,7 +27,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;;; Misc. Packages
+;;; Misc.
 (straight-use-package 'projectile)	; Project management
 (projectile-mode +1)
 
@@ -53,10 +54,17 @@
 
 (straight-use-package 'esup)		; Startup time benchmarking
 
+(defun rung-bell-function () nil)	; Turn off beeping
+
+(setq xref-prompt-for-identifier nil)
+
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
 (vertico-mode)
 (setq-default vertico-count 25)		; Show 25 options
+(setq read-file-name-completion-ignore-case t ; Be case insensitive
+      read-buffer-completion-ignore-case t
+      completion-ignore-case t)
 
 (straight-use-package 'savehist)        ; Save history for completion framework
 (savehist-mode)
@@ -65,16 +73,46 @@
 (marginalia-mode)
 
 (straight-use-package 'mini-frame)	; Minibuffer in center when typing
-(setq mini-frame-show-parameters '((top . 300) (width . 0.7) (left . 0.5)))
+(setq mini-frame-show-parameters '((top . 0) (width . 0.7) (left . 0.5)))
 (mini-frame-mode)
 
 (straight-use-package 'consult)		; Completion for more things
+(setq xref-show-xrefs-function #'consult-xref)
+(setq xref-show-definitions-function #'consult-xref)
 
 
 (straight-use-package 'orderless)       ; Complete by searching for space-separated snippets
 (setq completion-styles '(orderless basic)
       completion-caterogy-defaults nil
       completion-category-overrides '((file (stylef partial-completion))))
+
+;;; IDE tools
+;;;; LSP
+(setq read-process-output-max (* 1024 1024)) ; Better performance
+(straight-use-package 'lsp-mode)
+(setq lsp-headerline-breadcrumb-segments '(project file symbols))
+;;;; Company
+(straight-use-package 'company)
+(add-hook 'prog-mode-hook 'company-mode)
+(setq company-idle-delay 0)
+(setq company-minimum-prefix-length 0)
+(straight-use-package 'company-tabnine)
+;; (setq company-backends '((company-tabnine company-capf)))
+(setq company-backends '(company-tabnine))
+
+;;; Language modes
+;;;; Web-mode
+(straight-use-package 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.svelte\\'" . web-mode))
+(add-hook 'web-mode-hook #'lsp-deferred)
+;; (add-hook 'web-mode-hook (lambda () (setq-local outline-regexp "<!--\\|//\\|/\* [*]\\{1,8\\}'")))
 
 ;;; Visual
 ;;;; Vanilla emacs
@@ -144,7 +182,7 @@
   (enable-theme 'gruvbox-dark-medium)
   )
 
-(darkmode)
+(lightmode)
 
 ;;;; Splash screen
 (setq inhibit-startup-message t)
@@ -214,13 +252,16 @@
 					  :underline t
 					  ))))
 		  )
-;;;; Syntax highlighting
-;;;;; Treesitter
+;;; Syntax highlighting
+;;;; Treesitter
 ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
 (straight-use-package 'tree-sitter)
 (straight-use-package 'tree-sitter-langs)
+
+
 (global-tree-sitter-mode)
 (add-hook 'tree-sitter-after-on-hook 'tree-sitter-hl-mode)
+(add-to-list 'tree-sitter-major-mode-language-alist '(svelte-mode . svelte))
 
 ;;;;; Elisp
 ;; Stolen from doom emacs
@@ -306,8 +347,8 @@ library/userland functions"
 (global-prettify-symbols-mode)
 ;;;;;; Emacs lisp
 (add-hook 'emacs-lisp-mode-hook (lambda () (setq prettify-symbols-alist '(
-								     ("lambda" . ?λ)
-								     ))))
+									  ("lambda" . ?λ)
+									  ))))
 
 ;;; My Functions
 ;;;; mkoppg
@@ -330,7 +371,7 @@ library/userland functions"
 (setq evil-snipe-scope 'whole-visible)
 (setq evil-snipe-enable-highlight nil)
 (setq evil-snipe-enable-incremental-highlight nil)
-(evil-mode t)                           ; start evil in normal mode
+(evil-mode)
 
 (straight-use-package 'general)         ; Keybind wrapper
 
@@ -341,41 +382,6 @@ library/userland functions"
   (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
 (fix-ci-cm)
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
-
-;;;; Keybind functions and variables
-;;;;; Variables
-;;;;;; Recenter Margin
-(defvar keybinds--outline-recenter-margin 18)
-
-;;;;; Functions
-;;;;;; Outline & Recenter
-;;;;;;  Up recenter
-(defun keybinds--outline-up-recenter ()
-  "Run 'outline-up-heading' and 'recenter-top-bottom keybinds--outline-recenter-margin' in sequence."
-  (interactive)
-  (outline-up-heading 1)
-  (recenter-top-bottom keybinds--outline-recenter-margin))
-
-;;;;;;  Forward recenter
-(defun keybinds--outline-forward-recenter ()
-  "Run 'outline-forward-same-level' and 'recenter-top-bottom keybinds--outline-recenter-margin' in sequence."
-  (interactive)
-  (outline-forward-same-level 1)
-  (recenter-top-bottom keybinds--outline-recenter-margin))
-
-;;;;;;  Backward recenter
-(defun keybinds--outline-backward-recenter ()
-  "Run 'outline-backward-same-level' and 'recenter-top-bottom keybinds--outline-recenter-margin' in sequence."
-  (interactive)
-  (outline-backward-same-level 1)
-  (recenter-top-bottom keybinds--outline-recenter-margin))
-
-;;;;;;  Next recenter
-(defun keybinds--outline-next-recenter ()
-  "Run 'outline-next-visible-heading' and 'recenter-top-bottom keybinds--outline-recenter-margin' in sequence."
-  (interactive)
-  (outline-next-visible-heading 1)
-  (recenter-top-bottom keybinds--outline-recenter-margin))
 
 ;;;; Evil
 ;;;;; Movement
@@ -537,6 +543,24 @@ library/userland functions"
   :prefix "g"
 
   "f" 'find-file-at-point               ; go to file, target guessed by cursor
+  "d" 'xref-find-definitions
+  "r" 'xref-find-references
+  "u" 'pop-global-mark
+  )
+;;;; Vertico
+(general-def vertico-map
+  "C-n" 'vertico-next
+  "C-e" 'vertico-previous)
+;;;; LSP
+(general-def '(normal) lsp-mode-map
+  :prefix "SPC l"
+
+  "r" 'lsp-rename
+  )
+;;;; Company
+(general-def company-mode-map
+  "C-t" 'company-select-next
+  "C-s" 'company-select-previous
   )
 
 (provide 'init)
