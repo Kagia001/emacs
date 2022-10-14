@@ -28,6 +28,8 @@
   (load bootstrap-file nil 'nomessage))
 
 ;;; Misc.
+(setq ring-bell-function 'ignore)	; Turn off beep
+
 (straight-use-package 'projectile)	; Project management
 (projectile-mode +1)
 
@@ -121,17 +123,44 @@
 (tool-bar-mode -1)                      ; Remove tool bar
 (blink-cursor-mode -1)
 (global-hl-line-mode)			; Highlight current line
+;; (add-to-list 'default-frame-alist '(font . "fira code-12"))
 (add-to-list 'default-frame-alist '(font . "fira code nerd font-12"))
 
 ;;;; Theme
-;;;;; Light
-;;;;;; Color Theme
-(defun lightmode ()
+;;;;; Dracula
+(defun dracula ()
+  (interactive)
+  (straight-use-package 'dracula-theme)
+  (load-theme 'dracula t)
+  (custom-theme-set-faces
+   'dracula
+   '(outshine-level-1 ((t (
+			   :foreground "#bd93f9"
+			   ))))
+   '(outshine-level-2 ((t (
+			   :foreground "#8be9fd"
+			   ))))
+   '(outshine-level-3 ((t (
+			   :foreground "#50fa7b"
+			   ))))
+   '(outshine-level-4 ((t (
+			   :foreground "#ffb86c"
+			   ))))
+   '(outshine-level-5 ((t (
+			   :foreground "#ff79c6"
+			   ))))
+   )
+  (enable-theme 'dracula)
+  )
+  
+
+;;;;; Gruvbox
+;;;;;; Light
+(defun gruv-light ()
   (interactive)
   (straight-use-package 'gruvbox-theme)
   (load-theme 'gruvbox-light-medium t)
 
-;;;;;; Outline Header Colors
   (custom-theme-set-faces
    'gruvbox-light-medium
    '(outshine-level-1 ((t (
@@ -142,7 +171,7 @@
 			   ))))
    '(outshine-level-3 ((t (
 			   :foreground "#458588"
-			   ))))
+ 			   ))))
    '(outshine-level-4 ((t (
 			   :foreground "#689d6a"
 			   ))))
@@ -153,14 +182,12 @@
   (enable-theme 'gruvbox-light-medium)
   )
 
-;;;;; Dark
-;;;;;; Color Theme
-(defun darkmode ()
+;;;;;; Dark
+(defun gruv-dark ()
   (interactive)
   (straight-use-package 'gruvbox-theme)
   (load-theme 'gruvbox-dark-medium t)
 
-;;;;;; Outline Header Colors
   (custom-theme-set-faces
    'gruvbox-dark-medium
    '(outshine-level-1 ((t (
@@ -182,7 +209,15 @@
   (enable-theme 'gruvbox-dark-medium)
   )
 
-(lightmode)
+(defun lightmode ()
+  (interactive)
+  (gruv-light))
+
+(defun darkmode ()
+  (interactive)
+  (dracula))
+
+(darkmode)
 
 ;;;; Splash screen
 (setq inhibit-startup-message t)
@@ -211,47 +246,16 @@
 (doom-modeline-mode)
 
 ;;;; Outline
-;;;;; Outline Level 1
-(custom-set-faces '(outshine-level-1 ((t (
-					  :family "Victor Mono"
-					  :height 1.75
-					  :weight extra-bold
-					  :slant italic
-					  :underline t))))
-;;;;; Outline Level 2
-		  '(outshine-level-2 ((t (
-					  :family "Victor Mono"
-					  :height 1.5
-					  :weight extra-bold
-					  :slant italic
-					  :underline t
-					  ))))
-;;;;; Outline Level 3
-		  '(outshine-level-3 ((t (
-					  :family "Victor Mono"
-					  :height 1.25
-					  :weight bold
-					  :slant italic
-					  :underline t
-					  ))))
-;;;;; Outline Level 4
-		  '(outshine-level-4 ((t (
-					  :family "Victor Mono"
-					  :weight bold
-					  :height 1.25
-					  :weight bold
-					  :slant italic
-					  :underline t
-					  ))))
-;;;;; Outline Level 5
-		  '(outshine-level-5 ((t (
-					  :family "Victor Mono"
-					  :height 1.0
-					  :weight bold
-					  :slant italic
-					  :underline t
-					  ))))
-		  )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
+ '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
+ '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
+ '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
+ '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
 ;;; Syntax highlighting
 ;;;; Treesitter
 ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
@@ -350,7 +354,7 @@ library/userland functions"
 									  ("lambda" . ?λ)
 									  ))))
 
-;;; My Functions
+;;; My functions and modes
 ;;;; mkoppg
 (defun mkoppg (fmt)
   "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
@@ -362,8 +366,16 @@ library/userland functions"
   "Indent each nonblank line in the buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
-(provide 'my-functions)
 
+;;;; hide-outline-body-mode
+(define-minor-mode hide-outline-body-mode
+  "Hides outline bodies"
+  :global t
+  (if hide-outline-body-mode
+      (outline-hide-body)
+      (outline-show-all)
+    )
+)
 ;;; Keybinds
 ;;;; Keybind Packages
 (straight-use-package 'evil)            ; vim emulation
@@ -508,10 +520,10 @@ library/userland functions"
   "k" 'projectile-remove-known-project
   )
 
-;;;;; Outline Show/Hide
+;;;;; Folding
 (general-def '(normal insert visual replace operator motion)
-  :prefix "SPC n"
-  :non-normal-prefix "M-SPC n"
+  :prefix "SPC f"
+  :non-normal-prefix "M-SPC f"
 
   ;; "a" 'origami-forward-toggle-node
   ;; "o" 'origami-open-all-nodes
@@ -526,7 +538,7 @@ library/userland functions"
 
 ;;;;; Outline Edit
 (general-def '(normal)
-  :prefix "SPC d"
+  :prefix "SPC o"
 
   "SPC" 'consult-outline		; go to outline header
 
@@ -537,6 +549,8 @@ library/userland functions"
 
   "n" 'outline-move-subtree-down
   "e" 'outline-move-subtree-up
+
+  "t" 'hide-outline-body-mode
   )
 ;;;; Go
 (general-def '(normal)
@@ -546,6 +560,12 @@ library/userland functions"
   "d" 'xref-find-definitions
   "r" 'xref-find-references
   "u" 'pop-global-mark
+
+  "a" 'evil-set-marker			; adds evil marker
+  "m" 'evil-goto-mark-line		; go do specified marker
+  "n" 'evil-next-mark-line		; go to next evil marker
+  "e" 'evil-previous-mark-line		; go to previous evil marker
+  "l" 'evil-show-marks			; lists evil marks
   )
 ;;;; Vertico
 (general-def vertico-map
@@ -565,3 +585,9 @@ library/userland functions"
 
 (provide 'init)
 ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(warning-suppress-types '((frameset))))
