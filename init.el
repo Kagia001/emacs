@@ -123,8 +123,13 @@
 (tool-bar-mode -1)                      ; Remove tool bar
 (blink-cursor-mode -1)
 (global-hl-line-mode)			; Highlight current line
-;; (add-to-list 'default-frame-alist '(font . "fira code-12"))
-(add-to-list 'default-frame-alist '(font . "fira code nerd font-12"))
+(add-to-list 'default-frame-alist '(font . "fira code nerd font-12")) ; Font
+
+(setq inhibit-startup-message t)	; Disable splash screen
+(setq initial-scratch-message nil)
+
+(setq-default display-line-numbers 'relative) ; Show line numbers
+(setq-default display-line-numbers-width 3)
 
 ;;;; Theme
 ;;;;; Dracula
@@ -219,13 +224,12 @@
 
 (darkmode)
 
-;;;; Splash screen
-(setq inhibit-startup-message t)
-(setq initial-scratch-message nil)
 
-;;;; Line numbers
-(setq-default display-line-numbers 'relative)
-(setq-default display-line-numbers-width 3)
+;;;; Margins
+(straight-use-package 'perfect-margin)
+(setq perfect-margin-visible-width 160)
+(perfect-margin-mode 1)
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 ;;;; Indenting guide
 (straight-use-package 'highlight-indent-guides)
@@ -392,7 +396,6 @@ library/userland functions"
 
 
 ;;;; Vanilla behaviour
-
 (use-global-map (make-sparse-keymap))	; Unbind all default keybinds
 (global-set-key [t] #'self-insert-command) ; Adds typing keybinds back, https://emacs.stackexchange.com/a/3883
 (let ((c ?\s))
@@ -409,13 +412,15 @@ library/userland functions"
     (global-set-key (vector c) #'self-insert-command)
     (setq c (1+ c))))
 
-(general-def '(insert replace operator)	; Adds return and backspace back
+(general-def '(insert replace operator)	; Adds return backspace and tab
   "<return>" 'newline
   "<backspace>" 'backward-delete-char-untabify
+  "<tab>" 'indent-for-tab-command
   )
 
 (general-def minibuffer-local-map	; Adds return back in minibuffer
   "<return>" 'exit-minibuffer
+  "<backspace>" 'backward-delete-char-untabify
   )
 
 (defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
@@ -423,15 +428,6 @@ library/userland functions"
   (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
-;;;; Vertico
-(general-def vertico-map
-  "C-n" 'vertico-next
-  "C-e" 'vertico-previous)
-;;;; Company
-(general-def company-mode-map
-  "C-t" 'company-select-next
-  "C-s" 'company-select-previous
-  )
 
 ;;;; Evil
 ;;;;; Movement
@@ -521,7 +517,7 @@ library/userland functions"
   )
 
 ;;;;; Buffer
-(general-def '(normal)
+(general-def '(normal motion)
   :prefix "SPC b"
 
   "SPC" 'view-buffer
@@ -548,7 +544,7 @@ library/userland functions"
   )
 
 ;;;;; Projectile
-(general-def '(normal)
+(general-def '(normal motion)
   :prefix "SPC p"
 
   "SPC" 'projectile-switch-project
@@ -610,6 +606,21 @@ library/userland functions"
   "e" 'evil-previous-mark-line		; go to previous evil marker
   "l" 'evil-show-marks			; lists evil marks
   )
+
+;;;; Vertico
+(general-def vertico-map
+  "C-n" 'vertico-next
+  "C-e" 'vertico-previous)
+;;;; Company
+(general-def company-mode-map
+  "C-t" 'company-select-next
+  "C-s" 'company-select-previous
+  )
+
+;;;; Org
+(general-def '(normal insert)
+  org-mode-map
+  "<tab>" 'org-table-next-field)
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -617,3 +628,4 @@ library/userland functions"
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(warning-suppress-types '((frameset))))
+
