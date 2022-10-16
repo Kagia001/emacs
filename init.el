@@ -123,7 +123,7 @@
 (tool-bar-mode -1)                      ; Remove tool bar
 (blink-cursor-mode -1)
 (global-hl-line-mode)			; Highlight current line
-(add-to-list 'default-frame-alist '(font . "fira code nerd font-12")) ; Font
+(add-to-list 'default-frame-alist '(font . "fira code nerd font-13")) ; Font
 
 (setq inhibit-startup-message t)	; Disable splash screen
 (setq initial-scratch-message nil)
@@ -227,7 +227,7 @@
 
 ;;;; Margins
 (straight-use-package 'perfect-margin)
-(setq perfect-margin-visible-width 160)
+(setq perfect-margin-visible-width 120)
 (perfect-margin-mode 1)
 (add-hook 'org-mode-hook 'visual-line-mode)
 
