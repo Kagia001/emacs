@@ -378,6 +378,7 @@ library/userland functions"
 )
 ;;; Keybinds
 ;;;; Keybind Packages
+
 (straight-use-package 'evil)            ; vim emulation
 (straight-use-package 'evil-snipe)	; snipe letter
 (setq evil-snipe-scope 'whole-visible)
@@ -389,13 +390,9 @@ library/userland functions"
 
 (general-auto-unbind-keys)              ; Fixes some prefix key issues
 
-(defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
-  (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
-  (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
-(fix-ci-cm)
-(add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
-;;;; General Keybinds
+;;;; Vanilla behaviour
+
 (use-global-map (make-sparse-keymap))	; Unbind all default keybinds
 (global-set-key [t] #'self-insert-command) ; Adds typing keybinds back, https://emacs.stackexchange.com/a/3883
 (let ((c ?\s))
@@ -412,11 +409,25 @@ library/userland functions"
     (global-set-key (vector c) #'self-insert-command)
     (setq c (1+ c))))
 
-;;;;; Vertico
+(general-def '(insert replace operator)	; Adds return and backspace back
+  "<return>" 'newline
+  "<backspace>" 'backward-delete-char-untabify
+  )
+
+(general-def minibuffer-local-map	; Adds return back in minibuffer
+  "<return>" 'exit-minibuffer
+  )
+
+(defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
+  (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
+  (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
+(add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
+
+;;;; Vertico
 (general-def vertico-map
   "C-n" 'vertico-next
   "C-e" 'vertico-previous)
-;;;;; Company
+;;;; Company
 (general-def company-mode-map
   "C-t" 'company-select-next
   "C-s" 'company-select-previous
@@ -491,7 +502,7 @@ library/userland functions"
   "." 'find-file
   "t" 'vterm				; terminal emulator
   "ESC" 'restart-emacs
-  "~" 'comment-dwim			; comment selected line/after line
+  "c" 'comment-dwim			; comment selected line/after line
   )
 
 ;;;;; Window
@@ -525,7 +536,7 @@ library/userland functions"
   )
 
 ;;;;; Help
-(general-def '(normal)
+(general-def '(normal insert visual replace operator motion)
   :prefix "SPC h"
   :non-normal-prefix "C-SPC h"
 
