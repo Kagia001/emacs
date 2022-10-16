@@ -11,7 +11,7 @@
 (setq gc-cons-threshold (* 50 1000 1000))	; 100MB
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000)))) ; 2MB
 
-;;; Straight
+;; Straight
 (setq straight-check-for-modifications '(watch-files find-when-checking)) ; Speeds up straight startup
 
 ;; This whack shit is how you install straight apparently
@@ -395,6 +395,33 @@ library/userland functions"
 (fix-ci-cm)
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
+;;;; General Keybinds
+(use-global-map (make-sparse-keymap))	; Unbind all default keybinds
+(global-set-key [t] #'self-insert-command) ; Adds typing keybinds back, https://emacs.stackexchange.com/a/3883
+(let ((c ?\s))
+  (while (< c ?\d)
+    (global-set-key (vector c) #'self-insert-command)
+    (setq c (1+ c)))
+  (when (eq system-type 'ms-dos)
+    (setq c 128)
+    (while (< c 160)
+      (global-set-key (vector c) #'self-insert-command)
+      (setq c (1+ c))))
+  (setq c 160)
+  (while (< c 256)
+    (global-set-key (vector c) #'self-insert-command)
+    (setq c (1+ c))))
+
+;;;;; Vertico
+(general-def vertico-map
+  "C-n" 'vertico-next
+  "C-e" 'vertico-previous)
+;;;;; Company
+(general-def company-mode-map
+  "C-t" 'company-select-next
+  "C-s" 'company-select-previous
+  )
+
 ;;;; Evil
 ;;;;; Movement
 (general-def '(normal visual motion)
@@ -413,7 +440,7 @@ library/userland functions"
   "S" 'evil-snipe-S
 
   "(" 'evil-jump-item			; matching bracket
-;;;;;; Outline movement
+;;;;;; Outline Movement
   "H-m" 'outline-up-heading
   "C-n" 'outline-forward-same-level
   "C-e" 'outline-backward-same-level
@@ -425,6 +452,7 @@ library/userland functions"
 
 ;;;;;; Unbind
   "SPC" nil
+  ;; "C-z" nil
   )
 
 ;;;;; Normal mode
@@ -455,7 +483,7 @@ library/userland functions"
 ;;;;; Leader only
 (general-def '(normal insert visual replace operator motion)
   :prefix "SPC"
-  :non-normal-prefix "M-SPC"
+  :non-normal-prefix "C-SPC"
 
   "SPC" 'projectile-find-file		; find file in project
   ";" 'execute-extended-command		; M-x
@@ -463,12 +491,27 @@ library/userland functions"
   "." 'find-file
   "t" 'vterm				; terminal emulator
   "ESC" 'restart-emacs
+  "~" 'comment-dwim			; comment selected line/after line
+  )
+
+;;;;; Window
+(general-def '(normal insert visual replace operator motion)
+  :prefix "SPC w"
+  :non-normal-prefix "C-SPC w"
+
+  "n" 'evil-window-next
+  "e" 'evil-window-prev
+  "h" 'evil-window-split		; horisontal split
+  "i" 'evil-window-vsplit		; vertical split
+  "d" 'delete-window
+  "D" 'delete-other-windows
+  "k" 'delete-window
+  "K" 'delete-other-windows
   )
 
 ;;;;; Buffer
-(general-def '(normal insert visual replace operator motion)
+(general-def '(normal)
   :prefix "SPC b"
-  :non-normal-prefix "M-SPC b"
 
   "SPC" 'view-buffer
 
@@ -481,25 +524,10 @@ library/userland functions"
   "i" 'indent-buffer
   )
 
-;;;;; Window
-(general-def '(normal insert visual replace operator motion)
-  :prefix "SPC w"
-  :non-normal-prefix "M-SPC w"
-
-  "n" 'evil-window-next
-  "e" 'evil-window-prev
-  "h" 'evil-window-split		; horisontal split
-  "i" 'evil-window-vsplit		; vertical split
-  "d" 'delete-window
-  "D" 'delete-other-windows
-  "k" 'delete-window
-  "K" 'delete-other-windows
-  )
-
 ;;;;; Help
-(general-def '(normal insert visual replace operator motion)
+(general-def '(normal)
   :prefix "SPC h"
-  :non-normal-prefix "M-SPC h"
+  :non-normal-prefix "C-SPC h"
 
   "k" 'describe-key
   "a" 'consult-apropos
@@ -509,9 +537,8 @@ library/userland functions"
   )
 
 ;;;;; Projectile
-(general-def '(normal insert visual replace operator motion)
+(general-def '(normal)
   :prefix "SPC p"
-  :non-normal-prefix "M-SPC p"
 
   "SPC" 'projectile-switch-project
   "a" 'projectile-add-known-project
@@ -521,9 +548,8 @@ library/userland functions"
   )
 
 ;;;;; Folding
-(general-def '(normal insert visual replace operator motion)
+(general-def '(normal)
   :prefix "SPC f"
-  :non-normal-prefix "M-SPC f"
 
   ;; "a" 'origami-forward-toggle-node
   ;; "o" 'origami-open-all-nodes
@@ -552,6 +578,12 @@ library/userland functions"
 
   "t" 'hide-outline-body-mode
   )
+;;;;; LSP
+(general-def '(normal) lsp-mode-map
+  :prefix "SPC l"
+
+  "r" 'lsp-rename
+  )
 ;;;; Go
 (general-def '(normal)
   :prefix "g"
@@ -567,23 +599,6 @@ library/userland functions"
   "e" 'evil-previous-mark-line		; go to previous evil marker
   "l" 'evil-show-marks			; lists evil marks
   )
-;;;; Vertico
-(general-def vertico-map
-  "C-n" 'vertico-next
-  "C-e" 'vertico-previous)
-;;;; LSP
-(general-def '(normal) lsp-mode-map
-  :prefix "SPC l"
-
-  "r" 'lsp-rename
-  )
-;;;; Company
-(general-def company-mode-map
-  "C-t" 'company-select-next
-  "C-s" 'company-select-previous
-  )
-
-(provide 'init)
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
