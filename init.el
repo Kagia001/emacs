@@ -230,6 +230,7 @@
 
 ;;;; Margins
 (straight-use-package 'perfect-margin)
+(require 'perfect-margin)
 (setq perfect-margin-visible-width 120)
 (perfect-margin-mode 1)
 (add-hook 'org-mode-hook 'visual-line-mode)
@@ -354,6 +355,8 @@ library/userland functions"
 				     "<=" ">=" "<=>"
 				     ":="
 				     ))
+;;;;;; Org-mode
+(ligature-set-ligatures 'org-mode '("<=" ">=" "<=>"))
 ;;;;;; HTML
 (ligature-set-ligatures '(html-mode nxml-mode web-mode) '("</" "<!--" "</>" "-->" "/>"))
 ;;;;;; Emacs lisp
@@ -635,4 +638,5 @@ library/userland functions"
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(warning-suppress-types '((frameset))))
+
 
