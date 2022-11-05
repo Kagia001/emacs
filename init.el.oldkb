@@ -401,12 +401,12 @@ library/userland functions"
 (evil-mode)
 
 (straight-use-package 'general)         ; Keybind wrapper
+
 (general-auto-unbind-keys)              ; Fixes some prefix key issues
 
-(straight-use-package 'hydra)
 
 ;;;; Vanilla behaviour
-;; (use-global-map (make-sparse-keymap))	; Unbind all default keybinds
+(use-global-map (make-sparse-keymap))	; Unbind all default keybinds
 (global-set-key [t] #'self-insert-command) ; Adds typing keybinds back, https://emacs.stackexchange.com/a/3883
 (let ((c ?\s))
   (while (< c ?\d)
@@ -428,7 +428,7 @@ library/userland functions"
   "<tab>" 'indent-for-tab-command
   )
 
-(general-def minibuffer-local-map	; Adds return and backspace in minibuffer
+(general-def minibuffer-local-map	; Adds return back in minibuffer
   "<return>" 'exit-minibuffer
   "<backspace>" 'backward-delete-char-untabify
   )
@@ -439,7 +439,10 @@ library/userland functions"
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
 
+;;;; Evil
+;;;;; Movement
 (general-def '(normal visual motion)
+;;;;;; Evil movement
   "m" 'evil-backward-char
   "n" 'evil-next-line
   "e" 'evil-previous-line
@@ -454,8 +457,7 @@ library/userland functions"
   "S" 'evil-snipe-S
 
   "(" 'evil-jump-item			; matching bracket
-
-
+;;;;;; Outline Movement
   "H-m" 'outline-up-heading
   "C-n" 'outline-forward-same-level
   "C-e" 'outline-backward-same-level
@@ -465,20 +467,24 @@ library/userland functions"
   ;; "C-e" 'keybinds--outline-backward-recenter
   ;; "H-i" 'keybinds--outline-next-recenter
 
+;;;;;; Unbind
   "SPC" nil
   ;; "C-z" nil
   )
 
+;;;;; Normal mode
 (general-def 'normal
   "a" 'evil-insert
   "t" 'evil-append
   )
 
+;;;;; Visual mode
 (general-def 'visual
   "A" 'evil-insert
   "T" 'evil-append
   )
 
+;;;;; Insert mode
 (general-def 'insert
   "H-m" 'left-char
   "C-n" 'next-line
@@ -490,106 +496,141 @@ library/userland functions"
   "C-S-i" 'right-word
   )
 
+;;;; Leader
+;;;;; Leader only
+(general-def '(normal insert visual replace operator motion)
+  :prefix "SPC"
+  :non-normal-prefix "C-SPC"
+
+  "SPC" 'projectile-find-file		; find file in project
+  ";" 'execute-extended-command		; M-x
+  ":" 'pp-eval-expression		; M-:
+  "." 'find-file
+  "t" 'vterm				; terminal emulator
+  "ESC" 'restart-emacs
+  "c" 'comment-dwim			; comment selected line/after line
+  )
+
+;;;;; Window
+(general-def '(normal insert visual replace operator motion)
+  :prefix "SPC w"
+  :non-normal-prefix "C-SPC w"
+
+  "n" 'evil-window-next
+  "e" 'evil-window-prev
+  "h" 'evil-window-split		; horisontal split
+  "i" 'evil-window-vsplit		; vertical split
+  "d" 'delete-window
+  "D" 'delete-other-windows
+  "k" 'delete-window
+  "K" 'delete-other-windows
+  )
+
+;;;;; Buffer
+(general-def '(normal motion)
+  :prefix "SPC b"
+
+  "SPC" 'view-buffer
+
+  "s" 'basic-save-buffer		; Save
+  "d" 'kill-current-buffer
+  "k" 'kill-current-buffer
+  "n" 'next-buffer
+  "e" 'previous-buffer
+  "b" 'mode-line-other-buffer
+  "i" 'indent-buffer
+  )
+
+;;;;; Help
+(general-def '(normal insert visual replace operator motion)
+  :prefix "SPC h"
+  :non-normal-prefix "C-SPC h"
+
+  "k" 'describe-key
+  "a" 'consult-apropos
+  "f" 'describe-function
+  "v" 'describe-variable
+  "w" 'where-is
+  )
+
+;;;;; Projectile
+(general-def '(normal motion)
+  :prefix "SPC p"
+
+  "SPC" 'projectile-switch-project
+  "a" 'projectile-add-known-project
+  "i" 'projectile-invalidate-cache
+  "d" 'projectile-remove-known-project
+  "k" 'projectile-remove-known-project
+  )
+
+;;;;; Folding
+(general-def '(normal)
+  :prefix "SPC f"
+
+  ;; "a" 'origami-forward-toggle-node
+  ;; "o" 'origami-open-all-nodes
+  ;; "c" 'origami-close-all-nodes
+  ;; "s" 'origami-show-only-node
+  "a" 'outline-hide-leaves
+  "t" 'outline-show-subtree
+  "s" 'outline-show-all
+  "b" 'outline-hide-body
+  "o" 'outline-hide-other
+  )
+
+;;;;; Outline Edit
+(general-def '(normal)
+  :prefix "SPC o"
+
+  "SPC" 'consult-outline		; go to outline header
+
+  "a" 'outline-insert-heading
+
+  "m" 'outline-promote
+  "i" 'outline-demote
+
+  "n" 'outline-move-subtree-down
+  "e" 'outline-move-subtree-up
+
+  "t" 'hide-outline-body-mode
+  )
+;;;;; LSP
+(general-def '(normal) lsp-mode-map
+  :prefix "SPC l"
+
+  "r" 'lsp-rename
+  )
+;;;; Go
+(general-def '(normal)
+  :prefix "g"
+
+  "f" 'find-file-at-point               ; go to file, target guessed by cursor
+  "d" 'xref-find-definitions
+  "r" 'xref-find-references
+  "u" 'pop-global-mark
+
+  "a" 'evil-set-marker			; adds evil marker
+  "m" 'evil-goto-mark-line		; go do specified marker
+  "n" 'evil-next-mark-line		; go to next evil marker
+  "e" 'evil-previous-mark-line		; go to previous evil marker
+  "l" 'evil-show-marks			; lists evil marks
+  )
+
+;;;; Vertico
 (general-def vertico-map
   "C-n" 'vertico-next
   "C-e" 'vertico-previous)
-
+;;;; Company
 (general-def company-mode-map
   "C-t" 'company-select-next
   "C-s" 'company-select-previous
   )
 
+;;;; Org
 (general-def '(normal insert)
   org-mode-map
   "<tab>" 'org-table-next-field)
-
-; Hydra leader keybinds
-(general-def '(normal visual motion)
-  "SPC" 'hydra-leader/body
-  "g" 'hydra-go/body)
-(general-def '(insert replace operator)
-  "C-SPC" 'hydra-leader/body)
-
-(defhydra hydra-leader (:color blue)
-  ("SPC" projectile-find-file)		; find file in project
-  (";" execute-extended-command)	; M-x
-  (":" pp-eval-expression)		; M-:
-  ("." find-file)
-  ("t" vterm)				; terminal emulator
-  ("ESC" restart-emacs)
-  ("c" comment-dwim)			; comment selected line/after line
-
-  ("w" hydra-window/body)
-  ("b" hydra-buffer/body)
-  ("h" hydra-help/body)
-  ("p" hydra-projectile/body)
-  ("o" hydra-outline/body)
-  ("l" hydra-lsp/body)
-)
-
-(defhydra hydra-window (:color blue)
-  ("n" evil-window-next)
-  ("e" evil-window-prev)
-  ("h" evil-window-split)		; horisontal split
-  ("i" evil-window-vsplit)		; vertical split
-  ("d" delete-window)
-  ("D" delete-other-windows)
-  ("k" delete-window)
-  ("K" delete-other-windows)
-)
-
-(defhydra hydra-buffer (:color blue)
-  ("SPC" view-buffer)
-  ("s" basic-save-buffer)		; Save
-  ("d" kill-current-buffer)
-  ("k" kill-current-buffer)
-  ("n" next-buffer)
-  ("e" previous-buffer)
-  ("b" mode-line-other-buffer)
-  ("i" indent-buffer)
-)
-
-(defhydra hydra-help (:color blue)
-  ("k" describe-key)
-  ("a" consult-apropos)
-  ("f" describe-function)
-  ("v" describe-variable)
-  ("w" where-is)
-)
-
-(defhydra hydra-projectile (:color blue)
-  ("SPC" projectile-switch-project)
-  ("a" projectile-add-known-project)
-  ("i" projectile-invalidate-cache)
-  ("d" projectile-remove-known-project)
-  ("k" projectile-remove-known-project)
-)
-
-(defhydra hydra-outline (:color blue)
-  ("SPC" consult-outline)		; go to outline header
-  ("a" outline-insert-heading)
-  ("m" outline-promote)
-  ("i" outline-demote)
-  ("n" outline-move-subtree-down)
-  ("e" outline-move-subtree-up)
-  ("t" hide-outline-body-mode)
-)
-
-(defhydra hydra-lsp (:color blue)
-  ("r" 'lsp-rename)
-)
-
-(defhydra hydra-go (:color blue)
-  ("f" find-file-at-point)               ; go to file, target guessed by cursor
-  ("d" xref-find-definitions)
-  ("r" xref-find-references)
-  ("u" pop-global-mark)
-  ("a" evil-set-marker)			; adds evil marker
-  ("m" evil-goto-mark-line)		; go do specified marker
-  ("n" evil-next-mark-line)		; go to next evil marker
-  ("e" evil-previous-mark-line)		; go to previous evil marker
-  ("l" evil-show-marks)			; lists evil marks
-  )
 ;;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
