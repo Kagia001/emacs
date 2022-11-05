@@ -49,6 +49,9 @@
 
 (setq evil-undo-system 'undo-redo)	; Evil redo
 
+(straight-use-package 'org)
+(require 'org)
+
 (straight-use-package 'outshine)	; Comment headers
 (add-hook 'prog-mode-hook 'outshine-mode)
 
@@ -260,6 +263,10 @@
  '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
  '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
  '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
+
+;;;; Org-mode
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
+
 ;;; Syntax highlighting
 ;;;; Treesitter
 ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
