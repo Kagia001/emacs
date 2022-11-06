@@ -505,8 +505,7 @@ library/userland functions"
 
 ; Hydra leader keybinds
 (general-def '(normal visual motion)
-  "SPC" 'hydra-leader/body
-  "g" 'hydra-go/body)
+  "SPC" 'hydra-leader/body)
 (general-def '(insert replace operator)
   "C-SPC" 'hydra-leader/body)
 
@@ -525,6 +524,7 @@ library/userland functions"
   ("p" hydra-projectile/body)
   ("o" hydra-outline/body)
   ("l" hydra-lsp/body)
+  ("g" hydra-go/body)
 )
 
 (defhydra hydra-window (:color blue)
