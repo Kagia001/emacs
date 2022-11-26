@@ -431,6 +431,7 @@ library/userland functions"
 (general-def minibuffer-local-map	; Adds return and backspace in minibuffer
   "<return>" 'exit-minibuffer
   "<backspace>" 'backward-delete-char-untabify
+  "<tab>" 'vertico-insert
   )
 
 (defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
