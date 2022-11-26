@@ -96,6 +96,7 @@
 (setq read-process-output-max (* 1024 1024)) ; Better performance
 (straight-use-package 'lsp-mode)
 (setq lsp-headerline-breadcrumb-segments '(project file symbols))
+(straight-use-package 'consult-lsp)
 ;;;; Company
 (straight-use-package 'company)
 (add-hook 'prog-mode-hook 'company-mode)
@@ -440,6 +441,7 @@ library/userland functions"
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
 
+;;;; Evil
 (general-def '(normal visual motion)
   "m" 'evil-backward-char
   "n" 'evil-next-line
@@ -461,13 +463,10 @@ library/userland functions"
   "C-n" 'outline-forward-same-level
   "C-e" 'outline-backward-same-level
   "H-i" 'outline-next-visible-heading
-  ;; "H-m" 'keybinds--outline-up-recenter
-  ;; "C-n" 'keybinds--outline-forward-recenter
-  ;; "C-e" 'keybinds--outline-backward-recenter
-  ;; "H-i" 'keybinds--outline-next-recenter
+
+  "/" 'consult-line
 
   "SPC" nil
-  ;; "C-z" nil
   )
 
 (general-def 'normal
@@ -504,12 +503,13 @@ library/userland functions"
   org-mode-map
   "<tab>" 'org-table-next-field)
 
-; Hydra leader keybinds
+;;;; Hydras
 (general-def '(normal visual motion)
   "SPC" 'hydra-leader/body)
 (general-def '(insert replace operator)
   "C-SPC" 'hydra-leader/body)
 
+;;;;; Leader Hydra
 (defhydra hydra-leader (:color blue)
   ("SPC" projectile-find-file)		; find file in project
   (";" execute-extended-command)	; M-x
@@ -528,6 +528,7 @@ library/userland functions"
   ("g" hydra-go/body)
 )
 
+;;;;; Window Hydra
 (defhydra hydra-window (:color blue)
   ("n" evil-window-next)
   ("e" evil-window-prev)
@@ -539,8 +540,9 @@ library/userland functions"
   ("K" delete-other-windows)
 )
 
+;;;;; Buffer Hydra
 (defhydra hydra-buffer (:color blue)
-  ("SPC" view-buffer)
+  ("SPC" consult-buffer)
   ("s" basic-save-buffer)		; Save
   ("d" kill-current-buffer)
   ("k" kill-current-buffer)
@@ -550,6 +552,7 @@ library/userland functions"
   ("i" indent-buffer)
 )
 
+;;;;; Help Hydra
 (defhydra hydra-help (:color blue)
   ("k" describe-key)
   ("a" consult-apropos)
@@ -558,6 +561,7 @@ library/userland functions"
   ("w" where-is)
 )
 
+;;;;; Projectile Hydra
 (defhydra hydra-projectile (:color blue)
   ("SPC" projectile-switch-project)
   ("a" projectile-add-known-project)
@@ -566,6 +570,7 @@ library/userland functions"
   ("k" projectile-remove-known-project)
 )
 
+;;;;; Outline Hydra
 (defhydra hydra-outline (:color blue)
   ("SPC" consult-outline)		; go to outline header
   ("a" outline-insert-heading)
@@ -576,10 +581,13 @@ library/userland functions"
   ("t" hide-outline-body-mode)
 )
 
+;;;;; LSP Hydra
 (defhydra hydra-lsp (:color blue)
-  ("r" 'lsp-rename)
+  ("r" lsp-rename)
+  ("e" consult-lsp-diagnostics)
 )
 
+;;;;; Go Hydra
 (defhydra hydra-go (:color blue)
   ("f" find-file-at-point)               ; go to file, target guessed by cursor
   ("d" xref-find-definitions)
@@ -590,6 +598,7 @@ library/userland functions"
   ("n" evil-next-mark-line)		; go to next evil marker
   ("e" evil-previous-mark-line)		; go to previous evil marker
   ("l" evil-show-marks)			; lists evil marks
+  ("g" consult-imenu)			; jump to major definitions
   )
 ;;; init.el ends here
 (custom-set-variables
