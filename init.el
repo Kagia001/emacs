@@ -97,6 +97,12 @@
 (straight-use-package 'lsp-mode)
 (setq lsp-headerline-breadcrumb-segments '(project file symbols))
 (straight-use-package 'consult-lsp)
+
+;;;; Yasnippet
+(straight-use-package 'yasnippet)
+(straight-use-package 'yasnippet-snippets)
+(yas-global-mode 1)
+
 ;;;; Company
 (straight-use-package 'company)
 (add-hook 'prog-mode-hook 'company-mode)
@@ -104,7 +110,9 @@
 (setq company-minimum-prefix-length 0)
 (straight-use-package 'company-tabnine)
 ;; (setq company-backends '((company-tabnine company-capf)))
-(setq company-backends '(company-tabnine))
+;; (setq company-backends '(company-yasnippet))
+(setq lsp-completion-provider :none)
+(setq company-backends '((company-capf :with company-yasnippet)))
 
 ;;; Language modes
 ;;;; Web-mode
@@ -490,15 +498,18 @@ library/userland functions"
   "C-S-i" 'right-word
   )
 
+;;;; Vertico
 (general-def vertico-map
   "C-n" 'vertico-next
   "C-e" 'vertico-previous)
 
+;;;; Company
 (general-def company-mode-map
   "C-t" 'company-select-next
   "C-s" 'company-select-previous
   )
 
+;;;; Org-mode
 (general-def '(normal insert)
   org-mode-map
   "<tab>" 'org-table-next-field)
