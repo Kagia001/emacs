@@ -4,10 +4,13 @@
 ;; mickeynp/combobulate
 ;; TODO modernemacs.com
 ;; TODO svg todo and header
+;; emacs 29:
+;; TODO smooth scroll
+;; TODO new lsp and tree-sitter stuffs
 ;;; Init stuff
 ;; (add-to-list 'load-path "~/.emacs.d/my-packages/tree-sitter-langs")
 
-;; ;; Increasing garbage collection threshold during startup significantly lowers init times.
+;; Increasing garbage collection threshold during startup significantly lowers init times.
 (setq gc-cons-threshold (* 50 1000 1000))	; 100MB
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000)))) ; 2MB
 
@@ -30,16 +33,16 @@
 ;;; Misc.
 (setq ring-bell-function 'ignore)	; Turn off beep
 
-(straight-use-package 'projectile)	; Project management
-(projectile-mode +1)
+;; (straight-use-package 'projectile)	; Project management
+;; (projectile-mode +1)
 
-(straight-use-package 'restart-emacs)
+;; (straight-use-package 'restart-emacs)
 
-(desktop-save-mode 1)			; Save open windows and buffers
+(desktop-save-mode 1)		       ; Save open windows and buffers
 
-(straight-use-package 'figlet)		; ascii art text
+;; (straight-use-package 'figlet)		; ascii art text
 
-(straight-use-package 'vterm)		; Terminal emulator
+;; (straight-use-package 'vterm)		; Terminal emulator
 
 (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
 
@@ -49,19 +52,22 @@
 
 (setq evil-undo-system 'undo-redo)	; Evil redo
 
-(straight-use-package 'org)
-(require 'org)
+;; (straight-use-package 'org)
+;; (require 'org)
 
-(straight-use-package 'outshine)	; Comment headers
-(add-hook 'prog-mode-hook 'outshine-mode)
+;; (straight-use-package 'outshine)	; Comment headers
+;; (add-hook 'prog-mode-hook 'outshine-mode)
 
-(straight-use-package 'all-the-icons)
+;; (straight-use-package 'all-the-icons)
 
-(straight-use-package 'esup)		; Startup time benchmarking
+;; (straight-use-package 'esup)		; Startup time benchmarking
+;; (straight-use-package 'benchmark-init)
+;; (require 'benchmark-init)
+;; (add-hook 'after-init-hook 'benchmark-init/deactivate)
 
-(defun rung-bell-function () nil)	; Turn off beeping
+;; (defun rung-bell-function () nil)	; Turn off beeping
 
-(setq xref-prompt-for-identifier nil)
+;; (setq xref-prompt-for-identifier nil)
 
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
@@ -77,9 +83,9 @@
 (straight-use-package 'marginalia)	; Show explanations in vertico margin
 (marginalia-mode)
 
-(straight-use-package 'mini-frame)	; Minibuffer in center when typing
-(setq mini-frame-show-parameters '((top . 0) (width . 0.7) (left . 0.5)))
-(mini-frame-mode)
+;; (straight-use-package 'mini-frame)	; Minibuffer in center when typing
+;; (setq mini-frame-show-parameters '((top . 0) (width . 0.7) (left . 0.5)))
+;; (mini-frame-mode)
 
 (straight-use-package 'consult)		; Completion for more things
 (setq xref-show-xrefs-function #'consult-xref)
@@ -92,41 +98,48 @@
       completion-category-overrides '((file (stylef partial-completion))))
 
 ;;; IDE tools
-;;;; LSP
-(setq read-process-output-max (* 1024 1024)) ; Better performance
-(straight-use-package 'lsp-mode)
-(setq lsp-headerline-breadcrumb-segments '(project file symbols))
-(straight-use-package 'consult-lsp)
+;;;; Tree sitter
+(require 'treesit)
+(straight-use-package 'treesit-auto)
+(require 'treesit-auto)
+(global-treesit-auto-mode)
+(setq treesit-auto-install 'prompt)
 
-;;;; Yasnippet
-(straight-use-package 'yasnippet)
-(straight-use-package 'yasnippet-snippets)
-(yas-global-mode 1)
+;; ;;;; LSP
+;; (setq read-process-output-max (* 1024 1024)) ; Better performance
+;; (straight-use-package 'lsp-mode)
+;; (setq lsp-headerline-breadcrumb-segments '(project file symbols))
+;; (straight-use-package 'consult-lsp)
 
-;;;; Company
-(straight-use-package 'company)
-(add-hook 'prog-mode-hook 'company-mode)
-(setq company-idle-delay 0)
-(setq company-minimum-prefix-length 0)
-(straight-use-package 'company-tabnine)
-;; (setq company-backends '((company-tabnine company-capf)))
-;; (setq company-backends '(company-yasnippet))
-(setq lsp-completion-provider :none)
-(setq company-backends '((company-capf :with company-yasnippet)))
+;; ;;;; Yasnippet
+;; (straight-use-package 'yasnippet)
+;; (straight-use-package 'yasnippet-snippets)
+;; (yas-global-mode 1)
 
-;;; Language modes
-;;;; Web-mode
-(straight-use-package 'web-mode)
-(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.svelte\\'" . web-mode))
-(add-hook 'web-mode-hook #'lsp-deferred)
-;; (add-hook 'web-mode-hook (lambda () (setq-local outline-regexp "<!--\\|//\\|/\* [*]\\{1,8\\}'")))
+;; ;;;; Company
+;; (straight-use-package 'company)
+;; (add-hook 'prog-mode-hook 'company-mode)
+;; (setq company-idle-delay 0)
+;; (setq company-minimum-prefix-length 0)
+;; ;;(straight-use-package 'company-tabnine)
+;; ;; (setq company-backends '((company-tabnine company-capf)))
+;; ;; (setq company-backends '(company-yasnippet))
+;; (setq lsp-completion-provider :none)
+;; (setq company-backends '((company-capf :with company-yasnippet)))
+
+;; ;;; Language modes
+;; ;;;; Web-mode
+;; (straight-use-package 'web-mode)
+;; (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.svelte\\'" . web-mode))
+;; (add-hook 'web-mode-hook #'lsp-deferred)
+;; ;; (add-hook 'web-mode-hook (lambda () (setq-local outline-regexp "<!--\\|//\\|/\* [*]\\{1,8\\}'")))
 
 ;;; Visual
 ;;;; Vanilla emacs
@@ -137,13 +150,20 @@
 (global-hl-line-mode)			; Highlight current line
 (add-to-list 'default-frame-alist '(font . "fira code nerd font-13")) ; Font
 
-(setq inhibit-startup-message t)	; Disable splash screen
-(setq initial-scratch-message nil)
+;; (setq inhibit-startup-message t)	; Disable splash screen
+;; (setq initial-scratch-message nil)
 
 (setq-default display-line-numbers 'relative) ; Show line numbers
 (setq-default display-line-numbers-width 3)
 
+
 ;;;; Theme
+;; ;;;;; Catppuccin
+;;   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+;; (load-theme 'catppuccin t)
+;; (defun catppuccin ()
+;;   (enable-theme 'catppuccin)
+;; )
 ;;;;; Dracula
 (defun dracula ()
   (interactive)
@@ -171,64 +191,67 @@
   )
   
 
-;;;;; Gruvbox
-;;;;;; Light
-(defun gruv-light ()
-  (interactive)
-  (straight-use-package 'gruvbox-theme)
-  (load-theme 'gruvbox-light-medium t)
+;; ;;;;; Gruvbox
+;; ;;;;;; Light
+;; (defun gruv-light ()
+;;   (interactive)
+;;   (straight-use-package 'gruvbox-theme)
+;;   (load-theme 'gruvbox-light-medium t)
 
-  (custom-theme-set-faces
-   'gruvbox-light-medium
-   '(outshine-level-1 ((t (
-			   :foreground "#d65d0e"
-			   ))))
-   '(outshine-level-2 ((t (
-			   :foreground "#d79921"
-			   ))))
-   '(outshine-level-3 ((t (
-			   :foreground "#458588"
- 			   ))))
-   '(outshine-level-4 ((t (
-			   :foreground "#689d6a"
-			   ))))
-   '(outshine-level-5 ((t (
-			   :foreground "#98971a"
-			   ))))
-   )
-  (enable-theme 'gruvbox-light-medium)
-  )
+;;   (custom-theme-set-faces
+;;    'gruvbox-light-medium
+;;    '(outshine-level-1 ((t (
+;; 			   :foreground "#d65d0e"
+;; 			   ))))
+;;    '(outshine-level-2 ((t (
+;; 			   :foreground "#d79921"
+;; 			   ))))
+;;    '(outshine-level-3 ((t (
+;; 			   :foreground "#458588"
+;;  			   ))))
+;;    '(outshine-level-4 ((t (
+;; 			   :foreground "#689d6a"
+;; 			   ))))
+;;    '(outshine-level-5 ((t (
+;; 			   :foreground "#98971a"
+;; 			   ))))
+;;    )
+;;   (enable-theme 'gruvbox-light-medium)
+;;   )
 
 ;;;;;; Dark
-(defun gruv-dark ()
-  (interactive)
-  (straight-use-package 'gruvbox-theme)
-  (load-theme 'gruvbox-dark-medium t)
+;; (defun gruv-dark ()
+  ;; (interactive)
+  ;; (straight-use-package 'gruvbox-theme)
+  ;; (load-theme 'gruvbox-dark-medium t)
+;
+;;   (custom-theme-set-faces
+;;    'gruvbox-dark-medium
+;;    '(outshine-level-1 ((t (
+;; 			   :foreground "#ff8700"
+;; 			   ))))
+;;    '(outshine-level-2 ((t (
+;; 			   :foreground "#ffaf00"
+;; 			   ))))
+;;    '(outshine-level-3 ((t (
+;; 			   :foreground "#87afaf"
+;; 			   ))))
+;;    '(outshine-level-4 ((t (
+;; 			   :foreground "#87af87"
+;; 			   ))))
+;;    '(outshine-level-5 ((t (
+;; 			   :foreground "#afaf00"
+;; 			   ))))
+;;    )
+;;   (enable-theme 'gruvbox-dark-medium)
+;;   )
 
-  (custom-theme-set-faces
-   'gruvbox-dark-medium
-   '(outshine-level-1 ((t (
-			   :foreground "#ff8700"
-			   ))))
-   '(outshine-level-2 ((t (
-			   :foreground "#ffaf00"
-			   ))))
-   '(outshine-level-3 ((t (
-			   :foreground "#87afaf"
-			   ))))
-   '(outshine-level-4 ((t (
-			   :foreground "#87af87"
-			   ))))
-   '(outshine-level-5 ((t (
-			   :foreground "#afaf00"
-			   ))))
-   )
-  (enable-theme 'gruvbox-dark-medium)
-  )
-
-(defun lightmode ()
-  (interactive)
-  (gruv-light))
+;; (defun lightmode ()
+;;   (interactive)
+;;   (catppuccin)
+;; (setq catppuccin-flavor 'latte) ;; or 'latte, 'macchiato, or 'mocha
+;; (catppuccin-reload)
+;; )
 
 (defun darkmode ()
   (interactive)
@@ -237,12 +260,12 @@
 (darkmode)
 
 
-;;;; Margins
-(straight-use-package 'perfect-margin)
-(require 'perfect-margin)
-(setq perfect-margin-visible-width 120)
-(perfect-margin-mode 1)
-(add-hook 'org-mode-hook 'visual-line-mode)
+;; ;;;; Margins
+;; (straight-use-package 'perfect-margin)
+;; (require 'perfect-margin)
+;; (setq perfect-margin-visible-width 120)
+;; (perfect-margin-mode 1)
+;; (add-hook 'org-mode-hook 'visual-line-mode)
 
 ;;;; Indenting guide
 (straight-use-package 'highlight-indent-guides)
@@ -262,31 +285,27 @@
 (setq doom-modeline-buffer-encoding nil)
 (doom-modeline-mode)
 
-;;;; Outline
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
- '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
- '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
- '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
- '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
+;; ;;;; Outline
+;; (custom-set-faces
+;;  '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
+;;  '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
+;;  '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
+;;  '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
+;;  '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
 
-;;;; Org-mode
-(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
+;; ;;;; Org-mode
+;;(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
 
-;;; Syntax highlighting
-;;;; Treesitter
-;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
-(straight-use-package 'tree-sitter)
-(straight-use-package 'tree-sitter-langs)
+;; ;;; Syntax highlighting
+;; ;;;; Treesitter
+;; ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
+;; (straight-use-package 'tree-sitter)
+;; (straight-use-package 'tree-sitter-langs)
 
 
-(global-tree-sitter-mode)
-(add-hook 'tree-sitter-after-on-hook 'tree-sitter-hl-mode)
-(add-to-list 'tree-sitter-major-mode-language-alist '(svelte-mode . svelte))
+;; (global-tree-sitter-mode)
+;; (add-hook 'tree-sitter-after-on-hook 'tree-sitter-hl-mode)
+;; (add-to-list 'tree-sitter-major-mode-language-alist '(svelte-mode . svelte))
 
 ;;;;; Elisp
 ;; Stolen from doom emacs
@@ -335,7 +354,7 @@ library/userland functions"
 (straight-use-package 'highlight-numbers) ; Highlight numbers
 (add-hook 'emacs-lisp-mode-hook 'highlight-numbers-mode)
 
-;;;;; Keywords
+;; ;;;;; Keywords
 (straight-use-package 'hl-todo)
 (setq hl-todo-keyword-faces
       `(("TODO" warning bold)
@@ -348,41 +367,41 @@ library/userland functions"
 	("XXX" font-lock-constant-face bold)))
 (global-hl-todo-mode)
 
-;;;; Symbols
-;; NOTE https://raw.githubusercontent.com/jming422/fira-code-mode/master/fonts/FiraCode-Regular-Symbol.otf
-;;;;; Fira Code ligatures
-(add-hook 'haskell-mode-hook 'my-set-hasklig-ligatures)
-(straight-use-package '(ligature :type git :host github :repo "mickeynp/ligature.el"))
-(global-ligature-mode)
-;;;;;; Fundamental mode
-(ligature-set-ligatures 't '("www" "Fl" "Tl" "fi" "fj" "fl"))
-;;;;;; Prog mode
-(ligature-set-ligatures 'prog-mode '("++" "--" "**" "&&" "||" "||="
-				     "->" "=>" "::" "__"
-				     "==" "===" "!=" "=/="
-				     "<<" "<<<" ">>" ">>>" "|=" "^="
-				     "<=" ">=" "<=>"
-				     ":="
-				     ))
-;;;;;; Org-mode
-(ligature-set-ligatures 'org-mode '("<=" ">=" "<=>"))
-;;;;;; HTML
-(ligature-set-ligatures '(html-mode nxml-mode web-mode) '("</" "<!--" "</>" "-->" "/>"))
-;;;;;; Emacs lisp
-(ligature-set-ligatures 'emacs-lisp-mode '(";;"))
-;;;;; Prettify symbols mode
-(global-prettify-symbols-mode)
-;;;;;; Emacs lisp
-(add-hook 'emacs-lisp-mode-hook (lambda () (setq prettify-symbols-alist '(
-									  ("lambda" . ?λ)
-									  ))))
+;; ;;;; Symbols
+;; ;; NOTE https://raw.githubusercontent.com/jming422/fira-code-mode/master/fonts/FiraCode-Regular-Symbol.otf
+;; ;;;;; Fira Code ligatures
+;; (add-hook 'haskell-mode-hook 'my-set-hasklig-ligatures)
+;; (straight-use-package '(ligature :type git :host github :repo "mickeynp/ligature.el"))
+;; (global-ligature-mode)
+;; ;;;;;; Fundamental mode
+;; (ligature-set-ligatures 't '("www" "Fl" "Tl" "fi" "fj" "fl"))
+;; ;;;;;; Prog mode
+;; (ligature-set-ligatures 'prog-mode '("++" "--" "**" "&&" "||" "||="
+;; 				     "->" "=>" "::" "__"
+;; 				     "==" "===" "!=" "=/="
+;; 				     "<<" "<<<" ">>" ">>>" "|=" "^="
+;; 				     "<=" ">=" "<=>"
+;; 				     ":="
+;; 				     ))
+;; ;;;;;; Org-mode
+;; (ligature-set-ligatures 'org-mode '("<=" ">=" "<=>"))
+;; ;;;;;; HTML
+;; (ligature-set-ligatures '(html-mode nxml-mode web-mode) '("</" "<!--" "</>" "-->" "/>"))
+;; ;;;;;; Emacs lisp
+;; (ligature-set-ligatures 'emacs-lisp-mode '(";;"))
+;; ;;;;; Prettify symbols mode
+;; (global-prettify-symbols-mode)
+;; ;;;;;; Emacs lisp
+;; (add-hook 'emacs-lisp-mode-hook (lambda () (setq prettify-symbols-alist '(
+;; 									  ("lambda" . ?λ)
+;; 									  ))))
 
-;;; My functions and modes
-;;;; mkoppg
-(defun mkoppg (fmt)
-  "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
-  (interactive "sFile format: ")
-  (find-file (s-concat (format-time-string "oppg-%Y-%m-%d.") fmt)))
+;; ;;; My functions and modes
+;; ;;;; mkoppg
+;; (defun mkoppg (fmt)
+;;   "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
+;;   (interactive "sFile format: ")
+;;   (find-file (s-concat (format-time-string "oppg-%Y-%m-%d.") fmt)))
 
 ;;;; indent-buffer
 (defun indent-buffer ()
@@ -447,6 +466,12 @@ library/userland functions"
   (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
   (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
+(general-def '(normal visual motion insert replace operator)
+  "<triple-mouse-4>" 'mwheel-scroll
+  "<triple-mouse-5>" 'mwheel-scroll
+  "<double-mouse-4>" 'mwheel-scroll
+  "<double-mouse-5>" 'mwheel-scroll
+  )
 
 
 ;;;; Evil
@@ -611,12 +636,22 @@ library/userland functions"
   ("l" evil-show-marks)			; lists evil marks
   ("g" consult-imenu)			; jump to major definitions
   )
-;;; init.el ends here
+
+
+;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(auth-source-save-behavior nil)
+ '(custom-enabled-themes '(dracula))
  '(warning-suppress-types '((frameset))))
 
 
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
