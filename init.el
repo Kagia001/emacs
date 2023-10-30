@@ -33,18 +33,13 @@
 ;;; Misc.
 (setq ring-bell-function 'ignore)	; Turn off beep
 
-;; (straight-use-package 'projectile)	; Project management
-;; (projectile-mode +1)
-
-;; (straight-use-package 'restart-emacs)
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+(setq scroll-step 1) ;; keyboard scroll one line at a time
 
 (desktop-save-mode 1)		       ; Save open windows and buffers
-
-;; (straight-use-package 'figlet)		; ascii art text
-
-;; (straight-use-package 'vterm)		; Terminal emulator
-
-(setq frame-resize-pixelwise t) 	; Play nice with tiling wms
+;; (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
 
 (straight-use-package 'smartparens)	; Close brackets
 (require 'smartparens-config)
@@ -52,22 +47,25 @@
 
 (setq evil-undo-system 'undo-redo)	; Evil redo
 
-;; (straight-use-package 'org)
-;; (require 'org)
+(straight-use-package 'pdf-tools)
+(pdf-loader-install) ; On demand loading, leads to faster startup time
 
-;; (straight-use-package 'outshine)	; Comment headers
-;; (add-hook 'prog-mode-hook 'outshine-mode)
+(straight-use-package 'outshine)	; Comment headers
+(add-hook 'prog-mode-hook 'outshine-mode)
 
-;; (straight-use-package 'all-the-icons)
-
-;; (straight-use-package 'esup)		; Startup time benchmarking
-;; (straight-use-package 'benchmark-init)
-;; (require 'benchmark-init)
-;; (add-hook 'after-init-hook 'benchmark-init/deactivate)
-
-;; (defun rung-bell-function () nil)	; Turn off beeping
-
-;; (setq xref-prompt-for-identifier nil)
+(straight-use-package 'org)
+(require 'org)
+(add-hook 'org-mode-hook 'org-indent-mode)
+(straight-use-package 'cdlatex)
+(straight-use-package 'auctex)
+(setq org-preview-latex-default-process 'dvisvgm)
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+(setq cdlatex-command-alist
+ '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
+   ))
+(custom-set-variables
+ '(org-babel-load-languages (quote ((emacs-lisp . t) (C . t) (python . t))))
+ '(org-confirm-babel-evaluate nil))
 
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
@@ -99,17 +97,18 @@
 
 ;;; IDE tools
 ;;;; Tree sitter
-(require 'treesit)
-(straight-use-package 'treesit-auto)
-(require 'treesit-auto)
-(global-treesit-auto-mode)
-(setq treesit-auto-install 'prompt)
+;; (require 'treesit)
+;; (straight-use-package 'treesit-auto)
+;; (require 'treesit-auto)
+;; (global-treesit-auto-mode)
+;; (setq treesit-auto-install 'prompt)
 
-;; ;;;; LSP
+;;;; LSP
 ;; (setq read-process-output-max (* 1024 1024)) ; Better performance
 ;; (straight-use-package 'lsp-mode)
 ;; (setq lsp-headerline-breadcrumb-segments '(project file symbols))
 ;; (straight-use-package 'consult-lsp)
+(straight-use-package 'eglot)
 
 ;; ;;;; Yasnippet
 ;; (straight-use-package 'yasnippet)
@@ -285,18 +284,18 @@
 (setq doom-modeline-buffer-encoding nil)
 (doom-modeline-mode)
 
-;; ;;;; Outline
-;; (custom-set-faces
-;;  '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
-;;  '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
-;;  '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
-;;  '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
-;;  '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
+;;;; Outline
+(custom-set-faces
+ '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
+ '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
+ '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
+ '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
+ '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
 
 ;; ;;;; Org-mode
 ;;(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
 
-;; ;;; Syntax highlighting
+;;; Syntax highlighting
 ;; ;;;; Treesitter
 ;; ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
 ;; (straight-use-package 'tree-sitter)
@@ -402,6 +401,11 @@ library/userland functions"
 ;;   "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
 ;;   (interactive "sFile format: ")
 ;;   (find-file (s-concat (format-time-string "oppg-%Y-%m-%d.") fmt)))
+(defun foot-here ()
+    "open foot terminal"
+  (interactive)
+  (save-window-excursion
+  (async-shell-command "foot")))
 
 ;;;; indent-buffer
 (defun indent-buffer ()
@@ -433,45 +437,11 @@ library/userland functions"
 
 (straight-use-package 'hydra)
 
-;;;; Vanilla behaviour
-;; (use-global-map (make-sparse-keymap))	; Unbind all default keybinds
-(global-set-key [t] #'self-insert-command) ; Adds typing keybinds back, https://emacs.stackexchange.com/a/3883
-(let ((c ?\s))
-  (while (< c ?\d)
-    (global-set-key (vector c) #'self-insert-command)
-    (setq c (1+ c)))
-  (when (eq system-type 'ms-dos)
-    (setq c 128)
-    (while (< c 160)
-      (global-set-key (vector c) #'self-insert-command)
-      (setq c (1+ c))))
-  (setq c 160)
-  (while (< c 256)
-    (global-set-key (vector c) #'self-insert-command)
-    (setq c (1+ c))))
-
-(general-def '(insert replace operator)	; Adds return backspace and tab
-  "<return>" 'newline
-  "<backspace>" 'backward-delete-char-untabify
-  "<tab>" 'indent-for-tab-command
-  )
-
-(general-def minibuffer-local-map	; Adds return and backspace in minibuffer
-  "<return>" 'exit-minibuffer
-  "<backspace>" 'backward-delete-char-untabify
-  "<tab>" 'vertico-insert
-  )
 
 (defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
   (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
   (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
-(general-def '(normal visual motion insert replace operator)
-  "<triple-mouse-4>" 'mwheel-scroll
-  "<triple-mouse-5>" 'mwheel-scroll
-  "<double-mouse-4>" 'mwheel-scroll
-  "<double-mouse-5>" 'mwheel-scroll
-  )
 
 
 ;;;; Evil
@@ -535,9 +505,22 @@ library/userland functions"
   )
 
 ;;;; Org-mode
-(general-def '(normal insert)
-  org-mode-map
-  "<tab>" 'org-table-next-field)
+(general-def '(normal insert) org-mode-map
+  "<tab>" 'org-cycle
+  "M-m" 'org-metaleft
+  "M-n" 'org-metadown
+  "M-e" 'org-metaup
+  "M-i" 'org-metaright
+  )
+
+;;;; Org CDLaTeX
+(general-def '(insert) org-cdlatex-mode-map
+  "<tab>" 'cdlatex-tab
+  "C-l" 'cdlatex-dollar
+  )
+
+(general-def  org-cdlatex-mode-map
+  "C-l" 'org-latex-preview)
 
 ;;;; Hydras
 (general-def '(normal visual motion)
@@ -545,13 +528,30 @@ library/userland functions"
 (general-def '(insert replace operator)
   "C-SPC" 'hydra-leader/body)
 
+;;;; DocView
+(general-def 'doc-view-mode-map
+  "SPC"  'hydra-leader/body
+  "n" 'doc-view-next-page
+  "e" 'doc-view-previous-page
+  "gg" 'doc-view-first-page
+  "G" 'doc-view-last-page
+  )
+
+(general-def 'pdf-view-mode-map
+  "SPC"  'hydra-leader/body
+  "n" 'pdf-view-next-page-command
+  "e" 'pdf-view-previous-page-command
+  "gg" 'pdf-view-first-page
+  "G" 'pdf-view-last-page
+  )
+
 ;;;;; Leader Hydra
 (defhydra hydra-leader (:color blue)
   ("SPC" projectile-find-file)		; find file in project
   (";" execute-extended-command)	; M-x
   (":" pp-eval-expression)		; M-:
   ("." find-file)
-  ("t" vterm)				; terminal emulator
+  ("t" foot-here)				; terminal emulator
   ("ESC" restart-emacs)
   ("c" comment-dwim)			; comment selected line/after line
 
@@ -562,6 +562,7 @@ library/userland functions"
   ("o" hydra-outline/body)
   ("l" hydra-lsp/body)
   ("g" hydra-go/body)
+  ("e" hydra-eglot/body)
 )
 
 ;;;;; Window Hydra
@@ -594,6 +595,7 @@ library/userland functions"
   ("a" consult-apropos)
   ("f" describe-function)
   ("v" describe-variable)
+  ("m" describe-keymap)
   ("w" where-is)
 )
 
@@ -617,11 +619,11 @@ library/userland functions"
   ("t" hide-outline-body-mode)
 )
 
-;;;;; LSP Hydra
-(defhydra hydra-lsp (:color blue)
-  ("r" lsp-rename)
-  ("e" consult-lsp-diagnostics)
-)
+;; ;;;;; LSP Hydra
+;; (defhydra hydra-lsp (:color blue)
+;;   ("r" lsp-rename)
+;;   ("e" consult-lsp-diagnostics)
+;; )
 
 ;;;;; Go Hydra
 (defhydra hydra-go (:color blue)
@@ -636,6 +638,12 @@ library/userland functions"
   ("l" evil-show-marks)			; lists evil marks
   ("g" consult-imenu)			; jump to major definitions
   )
+
+(defhydra hydra-eglot (:color blue)
+  ("f" eglot-code-action-quickfix)
+  ("d" eldoc)
+  ("r" eglot-rename)
+)
 
 
 ;; init.el ends here
