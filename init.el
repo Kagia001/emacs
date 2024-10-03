@@ -38,7 +38,7 @@
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq scroll-step 1) ;; keyboard scroll one line at a time
 
-(desktop-save-mode 1)		       ; Save open windows and buffers
+;; (desktop-save-mode 1)		       ; Save open windows and buffers
 ;; (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
 
 (straight-use-package 'smartparens)	; Close brackets
@@ -62,10 +62,27 @@
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 (setq cdlatex-command-alist
  '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
+   ("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
+   ("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
    ))
-(custom-set-variables
+(setq cdlatex-math-modify-alist
+      '((98 "\\mathbb" nil t nil nil)))
+(setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))(custom-set-variables
  '(org-babel-load-languages (quote ((emacs-lisp . t) (C . t) (python . t))))
  '(org-confirm-babel-evaluate nil))
+
+(straight-use-package 'dashboard)
+(dashboard-setup-startup-hook)
+(setq dashboard-startup-banner 'logo)
+(setq dashboard-projects-backend 'project-el)
+(setq dashboard-items '((recents  . 5)
+                        (projects . 5)))
+(add-hook 'dashboard-mode 'dashboard-jump-to-recents)
+
+(savehist-mode)
+
+(setq dired-recursive-deletes 'always)
+(setq delete-by-moving-to-trash 't)
 
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
@@ -88,6 +105,14 @@
 (straight-use-package 'consult)		; Completion for more things
 (setq xref-show-xrefs-function #'consult-xref)
 (setq xref-show-definitions-function #'consult-xref)
+;; Use `consult-completion-in-region' if Vertico is enabled.
+;; Otherwise use the default `completion--in-region' function.
+(setq completion-in-region-function
+      (lambda (&rest args)
+        (apply (if vertico-mode
+                   #'consult-completion-in-region
+                 #'completion--in-region)
+               args)))
 
 
 (straight-use-package 'orderless)       ; Complete by searching for space-separated snippets
@@ -96,6 +121,9 @@
       completion-category-overrides '((file (stylef partial-completion))))
 
 ;;; IDE tools
+(require 'project)
+(setq project-switch-commands 'project-find-file)
+
 ;;;; Tree sitter
 ;; (require 'treesit)
 ;; (straight-use-package 'treesit-auto)
@@ -431,6 +459,7 @@ library/userland functions"
 (setq evil-snipe-enable-highlight nil)
 (setq evil-snipe-enable-incremental-highlight nil)
 (evil-mode)
+(evil-set-initial-state 'dashboard-mode 'emacs)
 
 (straight-use-package 'general)         ; Keybind wrapper
 (general-auto-unbind-keys)              ; Fixes some prefix key issues
@@ -452,6 +481,7 @@ library/userland functions"
   "i" 'evil-forward-char
 
   "f" 'evil-forward-WORD-end
+  "B" 'evil-backward-WORD-begin
 
   "k" 'evil-search-next
   "K" 'evil-search-previous
@@ -474,7 +504,9 @@ library/userland functions"
 
 (general-def 'normal
   "a" 'evil-insert
+  "A" 'evil-insert-line
   "t" 'evil-append
+  "T" 'evil-append-line
   )
 
 (general-def 'visual
@@ -493,15 +525,30 @@ library/userland functions"
   "C-S-i" 'right-word
   )
 
+;;;; Eglot
+(general-def eglot-mode-map
+  "TAB" 'completion-at-point)
+
 ;;;; Vertico
 (general-def vertico-map
   "C-n" 'vertico-next
   "C-e" 'vertico-previous)
 
-;;;; Company
-(general-def company-mode-map
-  "C-t" 'company-select-next
-  "C-s" 'company-select-previous
+;; ;;;; Company
+;; (general-def company-mode-map
+;;   "C-t" 'company-select-next
+;;   "C-s" 'company-select-previous
+;;   )
+
+;;;; Dired
+(general-def dired-mode-map
+  "n" 'dired-next-line
+  "e" 'dired-previous-line
+  "SPC" 'hydra-leader/body
+  "/" 'dired-goto-file
+  )
+(general-def 'visual dired-mode-map
+  "m" 'dired-mark			; normal behaviour, needs to be doubled down on cause idk
   )
 
 ;;;; Org-mode
@@ -511,6 +558,11 @@ library/userland functions"
   "M-n" 'org-metadown
   "M-e" 'org-metaup
   "M-i" 'org-metaright
+  )
+
+(general-def '(normal) org-mode-map
+  "M" 'org-shiftleft
+  "I" 'org-shiftright
   )
 
 ;;;; Org CDLaTeX
@@ -545,9 +597,22 @@ library/userland functions"
   "G" 'pdf-view-last-page
   )
 
+;;;; Dashboard
+(general-def dashboard-mode-map
+  "r" 'dashboard-jump-to-recents
+  "p" 'dashboard-jump-to-projects
+  "n" 'next-line
+  "e" 'previous-line
+  "." 'find-file
+  "SPC" 'dashboard-return
+  "M-SPC" 'hydra-leader/body
+  )
+
+;;;; Hydras
 ;;;;; Leader Hydra
 (defhydra hydra-leader (:color blue)
-  ("SPC" projectile-find-file)		; find file in project
+  ;; ("SPC" projectile-find-file)		; find file in project
+  ("SPC" project-find-file)		; find file in project
   (";" execute-extended-command)	; M-x
   (":" pp-eval-expression)		; M-:
   ("." find-file)
@@ -558,7 +623,8 @@ library/userland functions"
   ("w" hydra-window/body)
   ("b" hydra-buffer/body)
   ("h" hydra-help/body)
-  ("p" hydra-projectile/body)
+  ;; ("p" hydra-projectile/body)
+  ("p" hydra-project/body)
   ("o" hydra-outline/body)
   ("l" hydra-lsp/body)
   ("g" hydra-go/body)
@@ -599,14 +665,22 @@ library/userland functions"
   ("w" where-is)
 )
 
-;;;;; Projectile Hydra
-(defhydra hydra-projectile (:color blue)
-  ("SPC" projectile-switch-project)
-  ("a" projectile-add-known-project)
-  ("i" projectile-invalidate-cache)
-  ("d" projectile-remove-known-project)
-  ("k" projectile-remove-known-project)
+;;;;; Project Hydra
+(defhydra hydra-project (:color blue)
+  ("SPC" project-switch-project)
+  ;; ("a" project-add-known-project)
+  ("i" project-invalidate-cache)
+  ("d" project-remove-known-project)
+  ("k" project-remove-known-project)
 )
+;; ;;;;; Projectile Hydra
+;; (defhydra hydra-projectile (:color blue)
+;;   ("SPC" projectile-switch-project)
+;;   ("a" projectile-add-known-project)
+;;   ("i" projectile-invalidate-cache)
+;;   ("d" projectile-remove-known-project)
+;;   ("k" projectile-remove-known-project)
+;; )
 
 ;;;;; Outline Hydra
 (defhydra hydra-outline (:color blue)
@@ -639,6 +713,7 @@ library/userland functions"
   ("g" consult-imenu)			; jump to major definitions
   )
 
+;;;;; Eglot Hydra
 (defhydra hydra-eglot (:color blue)
   ("f" eglot-code-action-quickfix)
   ("d" eldoc)
