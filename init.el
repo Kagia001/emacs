@@ -1,3 +1,4 @@
+;;; init.el
 ;; TODO company kinda wonkey but works
 ;; TODO color hex colors
 ;; TODO -nw support
@@ -8,8 +9,6 @@
 ;; TODO smooth scroll
 ;; TODO new lsp and tree-sitter stuffs
 ;;; Init stuff
-;; (add-to-list 'load-path "~/.emacs.d/my-packages/tree-sitter-langs")
-
 ;; Increasing garbage collection threshold during startup significantly lowers init times.
 (setq gc-cons-threshold (* 50 1000 1000))	; 100MB
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000)))) ; 2MB
@@ -34,12 +33,15 @@
 (setq ring-bell-function 'ignore)	; Turn off beep
 
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq scroll-step 1) ;; keyboard scroll one line at a time
 
-;; (desktop-save-mode 1)		       ; Save open windows and buffers
+;; (desktop-save-mode 1)		; Save open windows and buffers
 ;; (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
+
+(straight-use-package 'project)		; eglot breaks without this
 
 (straight-use-package 'smartparens)	; Close brackets
 (require 'smartparens-config)
@@ -61,15 +63,25 @@
 (setq org-preview-latex-default-process 'dvisvgm)
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 (setq cdlatex-command-alist
- '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
-   ("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
-   ("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
-   ))
+      '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
+	("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
+	("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
+	))
 (setq cdlatex-math-modify-alist
       '((98 "\\mathbb" nil t nil nil)))
-(setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))(custom-set-variables
- '(org-babel-load-languages (quote ((emacs-lisp . t) (C . t) (python . t))))
- '(org-confirm-babel-evaluate nil))
+(setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(auth-source-save-behavior nil)
+ '(custom-enabled-themes '(dracula))
+ '(org-agenda-files
+   '("/home/karl/Documents/uni/wi24/orga.org" "/home/karl/Documents/uni/wi24/sus/tut1.org"))
+ '(org-babel-load-languages '((emacs-lisp . t) (C . t) (python . t)))
+ '(org-confirm-babel-evaluate nil)
+ '(warning-suppress-types '((frameset))))
 
 (straight-use-package 'dashboard)
 (dashboard-setup-startup-hook)
@@ -83,6 +95,63 @@
 
 (setq dired-recursive-deletes 'always)
 (setq delete-by-moving-to-trash 't)
+
+(straight-use-package 'nix-mode)
+(add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+
+(add-to-list 'display-buffer-alist '("*Async Shell Command*" display-buffer-no-window (nil)))
+(setq async-shell-command-buffer 'new-buffer)
+
+(straight-use-package 'bluetooth)
+
+(recentf-mode)				; dashboard mode forgets tramp files else
+
+
+
+(straight-use-package
+ '(eat :files ("*.el" ("term" "term/*.el") "*.texi"
+               "*.ti" ("terminfo/e" "terminfo/e/*")
+               ("terminfo/65" "terminfo/65/*")
+               ("integration" "integration/*")
+               (:exclude ".dir-locals.el" "*-tests.el"))))
+
+
+;;;; Org mode
+(setq org-agenda-window-setup 'current-window)
+
+;;; EXWM
+(straight-use-package 'exwm)
+(require 'exwm)
+(setq exwm-workspace-index-map (lambda (i) (number-to-string (1+ i))))
+(setq my/exwm-normal-workspace-number 4)
+(setq my/exwm-special-workspace-number 1)
+(setq exwm-workspace-number (+ my/exwm-normal-workspace-number my/exwm-special-workspace-number))
+
+;; Make buffer name more meaningful
+(add-hook 'exwm-update-class-hook
+          (lambda ()
+            (exwm-workspace-rename-buffer exwm-class-name)))
+
+(setq exwm-layout-show-all-buffers t)
+(setq exwm-workspace-show-all-buffers t)
+
+(setq exwm-input-simulation-keys
+      '(([a] . [b])
+	))
+
+(setq exwm-manage-configurations
+      '(((string= exwm-class-name "Spotify") workspace 4)
+        ;; ((string= exwm-class-name "firefox") char-mode t)
+	))
+
+
+(add-hook 'exwm-init-hook (lambda () (interactive)
+			    (async-shell-command "spotify")
+			    ))
+
+
+
+
 
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
@@ -124,6 +193,9 @@
 (require 'project)
 (setq project-switch-commands 'project-find-file)
 
+(straight-use-package 'direnv)
+(direnv-mode)
+
 ;;;; Tree sitter
 ;; (require 'treesit)
 ;; (straight-use-package 'treesit-auto)
@@ -153,8 +225,18 @@
 ;; ;; (setq company-backends '(company-yasnippet))
 ;; (setq lsp-completion-provider :none)
 ;; (setq company-backends '((company-capf :with company-yasnippet)))
+;;;; Magit
+(straight-use-package 'magit)
 
-;; ;;; Language modes
+;;; Language modes
+;;;; Arduino-mode
+(straight-use-package 'arduino-mode)
+;; (define-derived-mode my/arduino-micro-mode c-mode "arduino"
+;;   "My own mode which is a wrapper for c-mode for editing arduino files.")
+;; (add-to-list 'auto-mode-alist '("\\.ino\\'" . arduino-mode))
+;; (add-hook 'arduino-mode-hook #'eglot-ensure)
+;; (add-to-list 'eglot-server-programs 
+;;              '(my/arduino-micro-mode . ("arduino-language-server" "-fqbn" "arduino:avr:micro")))
 ;; ;;;; Web-mode
 ;; (straight-use-package 'web-mode)
 ;; (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -216,7 +298,7 @@
    )
   (enable-theme 'dracula)
   )
-  
+
 
 ;; ;;;;; Gruvbox
 ;; ;;;;;; Light
@@ -248,10 +330,10 @@
 
 ;;;;;; Dark
 ;; (defun gruv-dark ()
-  ;; (interactive)
-  ;; (straight-use-package 'gruvbox-theme)
-  ;; (load-theme 'gruvbox-dark-medium t)
-;
+;; (interactive)
+;; (straight-use-package 'gruvbox-theme)
+;; (load-theme 'gruvbox-dark-medium t)
+					;
 ;;   (custom-theme-set-faces
 ;;    'gruvbox-dark-medium
 ;;    '(outshine-level-1 ((t (
@@ -310,10 +392,19 @@
 (setq doom-modeline-buffer-file-name-style 'truncate-nil)
 (setq doom-modeline-buffer-state-icon nil)
 (setq doom-modeline-buffer-encoding nil)
+(display-battery-mode)
+(setq display-time-24hr-format t)
+(display-time)
+(straight-use-package 'exwm-modeline)
+(add-hook 'exwm-init-hook #'exwm-modeline-mode)
 (doom-modeline-mode)
 
 ;;;; Outline
 (custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
  '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
  '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
@@ -423,33 +514,82 @@ library/userland functions"
 ;; 									  ("lambda" . ?λ)
 ;; 									  ))))
 
-;; ;;; My functions and modes
+;;; My functions and modes
 ;; ;;;; mkoppg
 ;; (defun mkoppg (fmt)
 ;;   "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
 ;;   (interactive "sFile format: ")
 ;;   (find-file (s-concat (format-time-string "oppg-%Y-%m-%d.") fmt)))
-(defun foot-here ()
-    "open foot terminal"
+(defun my/foot-here ()
+  "open foot terminal"
   (interactive)
   (save-window-excursion
-  (async-shell-command "foot")))
+    (async-shell-command "foot")))
 
 ;;;; indent-buffer
-(defun indent-buffer ()
+(defun my/indent-buffer ()
   "Indent each nonblank line in the buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
-;;;; hide-outline-body-mode
-(define-minor-mode hide-outline-body-mode
+;;;; exwm
+(defun my/exwm-workspace-next ()
+  "Switch to next exwm workspace"
+  (interactive)
+  (exwm-workspace-switch (mod (1+ exwm-workspace-current-index) my/exwm-normal-workspace-number ))
+  )
+
+(defun my/exwm-workspace-prev ()
+  "Switch to prev exwm workspace"
+  (interactive)
+  (exwm-workspace-switch (mod (1- exwm-workspace-current-index) my/exwm-normal-workspace-number ))
+  )
+
+(setq my/exwm-toggle-special--last-ws 0)
+(defun my/exwm-toggle-special ()
+  "toggle special workspace"
+  (interactive)
+  (if (equal exwm-workspace-current-index my/exwm-normal-workspace-number)
+      (exwm-workspace-switch my/exwm-toggle-special--last-ws)
+    (setq my/exwm-toggle-special--last-ws exwm-workspace-current-index)
+    (exwm-workspace-switch my/exwm-normal-workspace-number)))
+
+(defun my/exwm-copy ()
+  "send copy, uses priv fns so might break"
+  (interactive)
+  (exwm-input--fake-key ?\C-c))
+
+(require 'xdg)
+(defun my/run-program ()
+  ""
+  (interactive)
+  (let ((hash (make-hash-table :test #'equal))
+	(data-dirs (xdg-data-dirs))
+        result)
+    (dolist (dir data-dirs)
+      (when (file-exists-p dir)
+        (let ((dir (file-name-as-directory dir)))
+          ;; Function `directory-files-recursively' added in Emacs 25.1.
+          (dolist (file (directory-files-recursively dir "\\.desktop\\'"))
+            (let ((id (subst-char-in-string ?/ ?- (file-relative-name file dir))))
+              (when (and (not (gethash id hash)) (file-readable-p file))
+                (push (cons id file) result)
+                (puthash id file hash)))))))
+    (prin1 result))
+  )
+;; (completing-read "Run: " '(("a") ("b") ("c"))))
+
+
+
+;;;; Hide-outline-body-mode
+(define-minor-mode my/hide-outline-body-mode
   "Hides outline bodies"
   :global t
   (if hide-outline-body-mode
       (outline-hide-body)
-      (outline-show-all)
+    (outline-show-all)
     )
-)
+  )
 ;;; Keybinds
 ;;;; Keybind Packages
 
@@ -500,6 +640,7 @@ library/userland functions"
   "/" 'consult-line
 
   "SPC" nil
+  "C-d" nil
   )
 
 (general-def 'normal
@@ -527,6 +668,10 @@ library/userland functions"
 
 ;;;; Eglot
 (general-def eglot-mode-map
+  "TAB" 'completion-at-point)
+
+;;;; lisp
+(general-def emacs-lisp-mode-map
   "TAB" 'completion-at-point)
 
 ;;;; Vertico
@@ -604,9 +749,41 @@ library/userland functions"
   "n" 'next-line
   "e" 'previous-line
   "." 'find-file
-  "SPC" 'dashboard-return
-  "M-SPC" 'hydra-leader/body
+  "SPC" 'hydra-leader/body
   )
+
+;;;; EXWM
+(setq exwm-input-global-keys
+      `((,(kbd "C-d") . my/exwm-copy)
+	;; (,(kbd "s-<wheel-left>") . enlarge-window-horizontally)  ; These 2 line break char mode for some reason
+	;; (,(kbd "s-<wheel-right>") . shrink-window-horizontally)
+
+	
+	(,(kbd "s-u") . enlarge-window-horizontally)
+	(,(kbd "s-l") . shrink-window-horizontally)
+
+	(,(kbd "s-SPC") . hydra-leader/body)
+
+	(,(kbd "s-n") . evil-window-next)
+	(,(kbd "s-e") . evil-window-prev)
+
+	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (async-shell-command "firefox"))))
+
+	(,(kbd "s-s") . my/exwm-toggle-special)
+	(,(kbd "s-d") . kill-current-buffer)
+	(,(kbd "s-f") . exwm-layout-toggle-fullscreen)
+
+	(,(kbd "s-k") . my/exwm-workspace-prev)
+	(,(kbd "s-h") . my/exwm-workspace-next)
+
+	,@(mapcar (lambda (i)
+		    `(,(kbd (format "s-%d" i)) .
+		      (lambda ()
+			(interactive)
+			(exwm-workspace-switch (1- ,i)))))
+		  (number-sequence 1 my/exwm-normal-workspace-number))
+
+	))
 
 ;;;; Hydras
 ;;;;; Leader Hydra
@@ -629,7 +806,7 @@ library/userland functions"
   ("l" hydra-lsp/body)
   ("g" hydra-go/body)
   ("e" hydra-eglot/body)
-)
+  )
 
 ;;;;; Window Hydra
 (defhydra hydra-window (:color blue)
@@ -641,7 +818,7 @@ library/userland functions"
   ("D" delete-other-windows)
   ("k" delete-window)
   ("K" delete-other-windows)
-)
+  )
 
 ;;;;; Buffer Hydra
 (defhydra hydra-buffer (:color blue)
@@ -653,7 +830,7 @@ library/userland functions"
   ("e" previous-buffer)
   ("b" mode-line-other-buffer)
   ("i" indent-buffer)
-)
+  )
 
 ;;;;; Help Hydra
 (defhydra hydra-help (:color blue)
@@ -663,16 +840,16 @@ library/userland functions"
   ("v" describe-variable)
   ("m" describe-keymap)
   ("w" where-is)
-)
+  )
 
 ;;;;; Project Hydra
 (defhydra hydra-project (:color blue)
   ("SPC" project-switch-project)
   ;; ("a" project-add-known-project)
-  ("i" project-invalidate-cache)
-  ("d" project-remove-known-project)
-  ("k" project-remove-known-project)
-)
+  ;; ("i" project-invalidate-cache)
+  ;; ("d" project-remove-known-project)
+  ;; ("k" project-remove-known-project)
+  )
 ;; ;;;;; Projectile Hydra
 ;; (defhydra hydra-projectile (:color blue)
 ;;   ("SPC" projectile-switch-project)
@@ -691,7 +868,8 @@ library/userland functions"
   ("n" outline-move-subtree-down)
   ("e" outline-move-subtree-up)
   ("t" hide-outline-body-mode)
-)
+  ("c" org-agenda)
+  )
 
 ;; ;;;;; LSP Hydra
 ;; (defhydra hydra-lsp (:color blue)
@@ -704,8 +882,8 @@ library/userland functions"
   ("f" find-file-at-point)               ; go to file, target guessed by cursor
   ("d" xref-find-definitions)
   ("r" xref-find-references)
-  ("u" pop-global-mark)
-  ("a" evil-set-marker)			; adds evil marker
+  ("u" xref-go-back)
+  ("A" Evil-Set-marker)			; adds evil marker
   ("m" evil-goto-mark-line)		; go do specified marker
   ("n" evil-next-mark-line)		; go to next evil marker
   ("e" evil-previous-mark-line)		; go to previous evil marker
@@ -718,23 +896,13 @@ library/userland functions"
   ("f" eglot-code-action-quickfix)
   ("d" eldoc)
   ("r" eglot-rename)
-)
+  )
 
+
+(exwm-enable)
 
 ;; init.el ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(auth-source-save-behavior nil)
- '(custom-enabled-themes '(dracula))
- '(warning-suppress-types '((frameset))))
 
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+
