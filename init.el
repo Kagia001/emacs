@@ -416,7 +416,7 @@
 
 ;;; Syntax highlighting
 ;; ;;;; Treesitter
-;; ;; Tree sitter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
+;; ;; Tree siter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
 ;; (straight-use-package 'tree-sitter)
 ;; (straight-use-package 'tree-sitter-langs)
 
@@ -585,7 +585,7 @@ library/userland functions"
 (define-minor-mode my/hide-outline-body-mode
   "Hides outline bodies"
   :global t
-  (if hide-outline-body-mode
+  (if my/hide-outline-body-mode
       (outline-hide-body)
     (outline-show-all)
     )
@@ -605,6 +605,7 @@ library/userland functions"
 (general-auto-unbind-keys)              ; Fixes some prefix key issues
 
 (straight-use-package 'hydra)
+(straight-use-package 'pretty-hydra)
 
 
 (defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
@@ -613,7 +614,8 @@ library/userland functions"
 (add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
 
 
-;;;; Evil
+;;;; Binds
+;;;;; Evil
 (general-def '(normal visual motion)
   "m" 'evil-backward-char
   "n" 'evil-next-line
@@ -621,7 +623,7 @@ library/userland functions"
   "i" 'evil-forward-char
 
   "f" 'evil-forward-WORD-end
-  "B" 'evil-backward-WORD-begin
+  "b" 'evil-backward-WORD-begin
 
   "k" 'evil-search-next
   "K" 'evil-search-previous
@@ -666,15 +668,15 @@ library/userland functions"
   "C-S-i" 'right-word
   )
 
-;;;; Eglot
+;;;;; Eglot
 (general-def eglot-mode-map
   "TAB" 'completion-at-point)
 
-;;;; lisp
+;;;;; lisp
 (general-def emacs-lisp-mode-map
   "TAB" 'completion-at-point)
 
-;;;; Vertico
+;;;;; Vertico
 (general-def vertico-map
   "C-n" 'vertico-next
   "C-e" 'vertico-previous)
@@ -685,7 +687,7 @@ library/userland functions"
 ;;   "C-s" 'company-select-previous
 ;;   )
 
-;;;; Dired
+;;;;; Dired
 (general-def dired-mode-map
   "n" 'dired-next-line
   "e" 'dired-previous-line
@@ -696,7 +698,7 @@ library/userland functions"
   "m" 'dired-mark			; normal behaviour, needs to be doubled down on cause idk
   )
 
-;;;; Org-mode
+;;;;; Org-mode
 (general-def '(normal insert) org-mode-map
   "<tab>" 'org-cycle
   "M-m" 'org-metaleft
@@ -710,7 +712,7 @@ library/userland functions"
   "I" 'org-shiftright
   )
 
-;;;; Org CDLaTeX
+;;;;; Org CDLaTeX
 (general-def '(insert) org-cdlatex-mode-map
   "<tab>" 'cdlatex-tab
   "C-l" 'cdlatex-dollar
@@ -719,13 +721,13 @@ library/userland functions"
 (general-def  org-cdlatex-mode-map
   "C-l" 'org-latex-preview)
 
-;;;; Hydras
+;;;;; Hydras
 (general-def '(normal visual motion)
   "SPC" 'hydra-leader/body)
 (general-def '(insert replace operator)
   "C-SPC" 'hydra-leader/body)
 
-;;;; DocView
+;;;;; DocView
 (general-def 'doc-view-mode-map
   "SPC"  'hydra-leader/body
   "n" 'doc-view-next-page
@@ -742,7 +744,7 @@ library/userland functions"
   "G" 'pdf-view-last-page
   )
 
-;;;; Dashboard
+;;;;; Dashboard
 (general-def dashboard-mode-map
   "r" 'dashboard-jump-to-recents
   "p" 'dashboard-jump-to-projects
@@ -752,7 +754,7 @@ library/userland functions"
   "SPC" 'hydra-leader/body
   )
 
-;;;; EXWM
+;;;;; EXWM
 (setq exwm-input-global-keys
       `((,(kbd "C-d") . my/exwm-copy)
 	;; (,(kbd "s-<wheel-left>") . enlarge-window-horizontally)  ; These 2 line break char mode for some reason
@@ -789,62 +791,61 @@ library/userland functions"
 ;;;;; Leader Hydra
 (defhydra hydra-leader (:color blue)
   ;; ("SPC" projectile-find-file)		; find file in project
-  ("SPC" project-find-file)		; find file in project
-  (";" execute-extended-command)	; M-x
-  (":" pp-eval-expression)		; M-:
-  ("." find-file)
-  ("t" foot-here)				; terminal emulator
-  ("ESC" restart-emacs)
-  ("c" comment-dwim)			; comment selected line/after line
+  ("SPC" project-find-file "find file in project")		; find file in project
+  (";" execute-extended-command "M-x")	; M-x
+  (":" pp-eval-expression "M-:")		; M-:
+  ("." find-file "find file")
+  ("t" eat "eat")				; terminal emulator
+  ("ESC" restart-emacs "restart emacs")
+  ("c" comment-dwim "comment")			; comment selected line/after line
 
-  ("w" hydra-window/body)
-  ("b" hydra-buffer/body)
-  ("h" hydra-help/body)
+  ("w" hydra-window/body "window")
+  ("b" hydra-buffer/body "buffer")
+  ("h" hydra-help/body "help")
   ;; ("p" hydra-projectile/body)
-  ("p" hydra-project/body)
-  ("o" hydra-outline/body)
-  ("l" hydra-lsp/body)
-  ("g" hydra-go/body)
-  ("e" hydra-eglot/body)
+  ("p" hydra-project/body "project")
+  ("o" hydra-outline/body "outline")
+  ("g" hydra-go/body "go")
+  ("e" hydra-eglot/body "eglot")
   )
 
 ;;;;; Window Hydra
 (defhydra hydra-window (:color blue)
-  ("n" evil-window-next)
-  ("e" evil-window-prev)
-  ("h" evil-window-split)		; horisontal split
-  ("i" evil-window-vsplit)		; vertical split
-  ("d" delete-window)
-  ("D" delete-other-windows)
-  ("k" delete-window)
-  ("K" delete-other-windows)
+  ("n" evil-window-next "next")
+  ("e" evil-window-prev "prev")
+  ("h" evil-window-split "hor. split")		; horisontal split
+  ("i" evil-window-vsplit "ver. split")		; vertical split
+  ("d" delete-window "delete")
+  ("D" delete-other-windows "delete other")
   )
 
 ;;;;; Buffer Hydra
 (defhydra hydra-buffer (:color blue)
-  ("SPC" consult-buffer)
-  ("s" basic-save-buffer)		; Save
-  ("d" kill-current-buffer)
-  ("k" kill-current-buffer)
-  ("n" next-buffer)
-  ("e" previous-buffer)
-  ("b" mode-line-other-buffer)
-  ("i" indent-buffer)
+  ("SPC" consult-buffer "consult")
+  ("s" basic-save-buffer "save")		; Save
+  ("d" kill-current-buffer "kill")
+  ;; ("n" next-buffer "next")
+  ;; ("e" previous-buffer "prev")
+  ("b" mode-line-other-buffer "other")
+  ("i" my/indent-buffer "indent buffer")
   )
 
 ;;;;; Help Hydra
 (defhydra hydra-help (:color blue)
-  ("k" describe-key)
-  ("a" consult-apropos)
-  ("f" describe-function)
-  ("v" describe-variable)
-  ("m" describe-keymap)
-  ("w" where-is)
+  ("k" describe-key "key")
+  ("a" consult-apropos "apropos")
+  ("f" describe-function "function")
+  ("v" describe-variable "variable")
+  ("m" describe-keymap "keymap")
+  ;; ("w" where-is "which key")
   )
 
 ;;;;; Project Hydra
 (defhydra hydra-project (:color blue)
-  ("SPC" project-switch-project)
+  ("SPC" project-switch-project "switch")
+  ("t" eat-project "terminal")
+  ("c" project-compile "compile")
+  ("r" project-recompile "recompile")
   ;; ("a" project-add-known-project)
   ;; ("i" project-invalidate-cache)
   ;; ("d" project-remove-known-project)
@@ -859,16 +860,16 @@ library/userland functions"
 ;;   ("k" projectile-remove-known-project)
 ;; )
 
-;;;;; Outline Hydra
+;;;;; Outline/Org Hydra
 (defhydra hydra-outline (:color blue)
-  ("SPC" consult-outline)		; go to outline header
-  ("a" outline-insert-heading)
-  ("m" outline-promote)
-  ("i" outline-demote)
-  ("n" outline-move-subtree-down)
-  ("e" outline-move-subtree-up)
-  ("t" hide-outline-body-mode)
-  ("c" org-agenda)
+  ("SPC" consult-outline "consult")		; go to outline header
+  ("a" outline-insert-heading "insert")
+  ("m" outline-promote "promote")
+  ("i" outline-demote "demote")
+  ("n" outline-move-subtree-down "move down")
+  ("e" outline-move-subtree-up "move up")
+  ("t" my/hide-outline-body-mode "toggle bodies")
+  ("c" org-agenda "agenda")
   )
 
 ;; ;;;;; LSP Hydra
@@ -879,23 +880,23 @@ library/userland functions"
 
 ;;;;; Go Hydra
 (defhydra hydra-go (:color blue)
-  ("f" find-file-at-point)               ; go to file, target guessed by cursor
-  ("d" xref-find-definitions)
-  ("r" xref-find-references)
-  ("u" xref-go-back)
-  ("A" Evil-Set-marker)			; adds evil marker
-  ("m" evil-goto-mark-line)		; go do specified marker
-  ("n" evil-next-mark-line)		; go to next evil marker
-  ("e" evil-previous-mark-line)		; go to previous evil marker
-  ("l" evil-show-marks)			; lists evil marks
-  ("g" consult-imenu)			; jump to major definitions
+  ("f" find-file-at-point "file")               ; go to file, target guessed by cursor
+  ("d" xref-find-definitions "definition")
+  ("r" xref-find-references "references")
+  ("u" xref-go-back "back")
+  ("a" evil-Set-marker "set marker")			; adds evil marker
+  ("m" evil-goto-mark-line "go to marker")		; go do specified marker
+  ("n" evil-next-mark-line "next marker")		; go to next evil marker
+  ("e" evil-previous-mark-line "previous marker")		; go to previous evil marker
+  ("l" evil-show-marks "list markers")			; lists evil marks
+  ("g" consult-imenu "consult")			; jump to major definitions
   )
 
 ;;;;; Eglot Hydra
 (defhydra hydra-eglot (:color blue)
-  ("f" eglot-code-action-quickfix)
-  ("d" eldoc)
-  ("r" eglot-rename)
+  ("f" eglot-code-action-quickfix "quickfix")
+  ("d" eldoc "doc")
+  ("r" eglot-rename "rename")
   )
 
 
