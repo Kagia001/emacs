@@ -1,4 +1,4 @@
-;;; init.el
+;; init.el
 ;; TODO company kinda wonkey but works
 ;; TODO color hex colors
 ;; TODO -nw support
@@ -52,36 +52,6 @@
 (straight-use-package 'pdf-tools)
 (pdf-loader-install) ; On demand loading, leads to faster startup time
 
-(straight-use-package 'outshine)	; Comment headers
-(add-hook 'prog-mode-hook 'outshine-mode)
-
-(straight-use-package 'org)
-(require 'org)
-(add-hook 'org-mode-hook 'org-indent-mode)
-(straight-use-package 'cdlatex)
-(straight-use-package 'auctex)
-(setq org-preview-latex-default-process 'dvisvgm)
-(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
-(setq cdlatex-command-alist
-      '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
-	("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
-	("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
-	))
-(setq cdlatex-math-modify-alist
-      '((98 "\\mathbb" nil t nil nil)))
-(setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(auth-source-save-behavior nil)
- '(custom-enabled-themes '(dracula))
- '(org-agenda-files
-   '("/home/karl/Documents/uni/wi24/orga.org" "/home/karl/Documents/uni/wi24/sus/tut1.org"))
- '(org-babel-load-languages '((emacs-lisp . t) (C . t) (python . t)))
- '(org-confirm-babel-evaluate nil)
- '(warning-suppress-types '((frameset))))
 
 (straight-use-package 'dashboard)
 (dashboard-setup-startup-hook)
@@ -94,13 +64,14 @@
 (savehist-mode)
 
 (setq dired-recursive-deletes 'always)
+(setq dired-dwim-target 't)
 (setq delete-by-moving-to-trash 't)
 
 (straight-use-package 'nix-mode)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
 
 (add-to-list 'display-buffer-alist '("*Async Shell Command*" display-buffer-no-window (nil)))
-(setq async-shell-command-buffer 'new-buffer)
+(setq async-shell-command-buffer 'rename-buffer)
 
 (straight-use-package 'bluetooth)
 
@@ -117,6 +88,47 @@
 
 
 ;;;; Org mode
+;;;;; outshine
+(straight-use-package 'outshine)	; Comment headers
+(add-hook 'prog-mode-hook 'outshine-mode)
+
+;;;;; org main
+(straight-use-package 'org)
+(require 'org)
+(add-hook 'org-mode-hook 'org-indent-mode)
+
+;;;;; org latex
+(straight-use-package 'cdlatex)
+(straight-use-package 'xenops)
+(straight-use-package 'auctex)
+(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+(add-hook 'org-mode-hook #'xenops-mode)
+(setq org-preview-latex-default-process 'dvisvgm)
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.3))
+(setq xenops-math-image-scale-factor 1.3)
+(setq cdlatex-command-alist
+      '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
+	("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
+	("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
+	))
+(setq cdlatex-math-modify-alist
+      '((98 "\\mathbb" nil t nil nil)))
+(setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(auth-source-save-behavior nil)
+ '(custom-enabled-themes '(dracula))
+ '(org-agenda-files
+   '("/home/karl/Documents/uni/wi24/orga.org" "/home/karl/Documents/uni/wi24/sus/tut1.org"))
+ '(org-babel-load-languages '((emacs-lisp . t) (C . t) (python . t)))
+ '(org-confirm-babel-evaluate nil)
+ '(warning-suppress-types '((frameset))))
+
+;;;;; org agenda
 (setq org-agenda-window-setup 'current-window)
 
 ;;; EXWM
@@ -520,11 +532,11 @@ library/userland functions"
 ;;   "Make file with set file format named oppg-YEAR-MONTH-DAY.FILE_FORMAT."
 ;;   (interactive "sFile format: ")
 ;;   (find-file (s-concat (format-time-string "oppg-%Y-%m-%d.") fmt)))
-(defun my/foot-here ()
-  "open foot terminal"
-  (interactive)
-  (save-window-excursion
-    (async-shell-command "foot")))
+;; (defun my/foot-here ()
+;;   "open foot terminal"
+;;   (interactive)
+;;   (save-window-excursion
+;;     (async-shell-command "foot")))
 
 ;;;; indent-buffer
 (defun my/indent-buffer ()
@@ -578,6 +590,7 @@ library/userland functions"
     (prin1 result))
   )
 ;; (completing-read "Run: " '(("a") ("b") ("c"))))
+
 
 
 
@@ -755,11 +768,27 @@ library/userland functions"
   )
 
 ;;;;; EXWM
+(defun my/pactl-volume ()
+  (interactive)
+  (let ((pactl-output (shell-command-to-string "pactl get-sink-volume 0")))
+    (string-match (rx (group line-start "Volume: front-left: " (1+ digit) " / " (0+ " ")
+			     (group (1+ digit) "%")))
+		  pactl-output)
+
+    (message "%s" (match-string 2 pactl-output))))
+
+
 (setq exwm-input-global-keys
       `((,(kbd "C-d") . my/exwm-copy)
-	;; (,(kbd "s-<wheel-left>") . enlarge-window-horizontally)  ; These 2 line break char mode for some reason
-	;; (,(kbd "s-<wheel-right>") . shrink-window-horizontally)
 
+	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -U 10"))))
+	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -A 10"))))
+
+	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -U 10"))))
+	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -A 10"))))
+	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (let ((default-directory "~")) (shell-command "pactl set-sink-volume 0 +2%") (my/pactl-volume))))
+	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (let ((default-directory "~")) (shell-command "pactl set-sink-volume 0 -2%") (my/pactl-volume))))
+	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "pactl set-sink-mute 0 toggle"))))
 	
 	(,(kbd "s-u") . enlarge-window-horizontally)
 	(,(kbd "s-l") . shrink-window-horizontally)
@@ -769,87 +798,103 @@ library/userland functions"
 	(,(kbd "s-n") . evil-window-next)
 	(,(kbd "s-e") . evil-window-prev)
 
-	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (async-shell-command "firefox"))))
+	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (let ((default-directory "~")) (async-shell-command "firefox")))))
 
 	(,(kbd "s-s") . my/exwm-toggle-special)
-	(,(kbd "s-d") . kill-current-buffer)
+	(,(kbd "s-d") . kill-buffer-and-window)
 	(,(kbd "s-f") . exwm-layout-toggle-fullscreen)
 
 	(,(kbd "s-k") . my/exwm-workspace-prev)
 	(,(kbd "s-h") . my/exwm-workspace-next)
 
 	,@(mapcar (lambda (i)
-		    `(,(kbd (format "s-%d" i)) .
+		    `(,(kbd (format "s-%d" (1+ i))) .
 		      (lambda ()
 			(interactive)
-			(exwm-workspace-switch (1- ,i)))))
-		  (number-sequence 1 my/exwm-normal-workspace-number))
+			(exwm-workspace-switch ,i))))
+		  (number-sequence 0 my/exwm-normal-workspace-number))
+
+
+	,@(let ((shift-list  '("!" "@" "#" "$" "%" "&" "/" "*" "(")))
+	    (mapcar (lambda (i)
+		      `(,(kbd (format "s-%s" (nth i shift-list))) .
+			(lambda ()
+			  (interactive)
+			  (exwm-workspace-move-window ,i))))
+		    (number-sequence 0 my/exwm-normal-workspace-number)))
 
 	))
 
 ;;;; Hydras
 ;;;;; Leader Hydra
-(defhydra hydra-leader (:color blue)
+(pretty-hydra-define hydra-leader (:color blue)
   ;; ("SPC" projectile-find-file)		; find file in project
-  ("SPC" project-find-file "find file in project")		; find file in project
-  (";" execute-extended-command "M-x")	; M-x
-  (":" pp-eval-expression "M-:")		; M-:
-  ("." find-file "find file")
-  ("t" eat "eat")				; terminal emulator
-  ("ESC" restart-emacs "restart emacs")
-  ("c" comment-dwim "comment")			; comment selected line/after line
-
-  ("w" hydra-window/body "window")
-  ("b" hydra-buffer/body "buffer")
-  ("h" hydra-help/body "help")
-  ;; ("p" hydra-projectile/body)
-  ("p" hydra-project/body "project")
-  ("o" hydra-outline/body "outline")
-  ("g" hydra-go/body "go")
-  ("e" hydra-eglot/body "eglot")
+  ("EMACS"
+   (("ESC" restart-emacs "restart emacs")
+    ("w" hydra-window/body "window")
+    ("b" hydra-buffer/body "buffer")
+    ("h" hydra-help/body "help")
+    (";" execute-extended-command "M-x")
+    (":" pp-eval-expression "M-:"))
+   ;; ("p" hydra-projectile/body)
+   "editing"
+   (("g" hydra-go/body "go")
+    ("o" hydra-outline/body "outline")
+    ("p" hydra-project/body "project")
+    ("e" hydra-eglot/body "eglot")
+    ("c" comment-dwim "comment"))
+   "misc"
+   (("." find-file "find file")
+    ("SPC" project-find-file "find file in project")
+    ("t" eat "term"))
+   )
   )
 
 ;;;;; Window Hydra
-(defhydra hydra-window (:color blue)
-  ("n" evil-window-next "next")
-  ("e" evil-window-prev "prev")
-  ("h" evil-window-split "hor. split")		; horisontal split
-  ("i" evil-window-vsplit "ver. split")		; vertical split
-  ("d" delete-window "delete")
-  ("D" delete-other-windows "delete other")
+(pretty-hydra-define hydra-window (:color blue)
+  ("Select"
+   (("n" evil-window-next "next")
+    ("e" evil-window-prev "prev"))
+   "Split"
+   (("h" evil-window-split "hor. split")
+    ("i" evil-window-vsplit "ver. split"))
+   "Delete"
+   (("k" delete-window "delete")
+    ("K" delete-other-windows "delete other"))
+   )
   )
 
 ;;;;; Buffer Hydra
-(defhydra hydra-buffer (:color blue)
-  ("SPC" consult-buffer "consult")
-  ("s" basic-save-buffer "save")		; Save
-  ("d" kill-current-buffer "kill")
-  ;; ("n" next-buffer "next")
-  ;; ("e" previous-buffer "prev")
-  ("b" mode-line-other-buffer "other")
-  ("i" my/indent-buffer "indent buffer")
+(pretty-hydra-define hydra-buffer (:color blue)
+  ("Buffer"
+   (("SPC" consult-buffer "consult")
+    ("s" basic-save-buffer "save")		; Save
+    ("k" kill-current-buffer "kill")
+    ("b" mode-line-other-buffer "other")
+    ("i" my/indent-buffer "indent buffer"))
+   )
   )
 
 ;;;;; Help Hydra
-(defhydra hydra-help (:color blue)
-  ("k" describe-key "key")
-  ("a" consult-apropos "apropos")
-  ("f" describe-function "function")
-  ("v" describe-variable "variable")
-  ("m" describe-keymap "keymap")
-  ;; ("w" where-is "which key")
+(pretty-hydra-define hydra-help (:color blue)
+  ("Help"
+   (("k" describe-key "key")
+    ("a" consult-apropos "apropos")
+    ("f" describe-function "function")
+    ("v" describe-variable "variable")
+    ("m" describe-keymap "keymap"))
+   )
   )
 
 ;;;;; Project Hydra
-(defhydra hydra-project (:color blue)
-  ("SPC" project-switch-project "switch")
-  ("t" eat-project "terminal")
-  ("c" project-compile "compile")
-  ("r" project-recompile "recompile")
-  ;; ("a" project-add-known-project)
-  ;; ("i" project-invalidate-cache)
-  ;; ("d" project-remove-known-project)
-  ;; ("k" project-remove-known-project)
+(pretty-hydra-define hydra-project (:color blue)
+  ("Project"
+   (("SPC" project-switch-project "switch")
+    ("t" eat-project "terminal")
+    ("c" project-compile "compile")
+    ("r" project-recompile "recompile")
+    ("m" magit "magit"))
+   )
   )
 ;; ;;;;; Projectile Hydra
 ;; (defhydra hydra-projectile (:color blue)
@@ -861,16 +906,30 @@ library/userland functions"
 ;; )
 
 ;;;;; Outline/Org Hydra
-(defhydra hydra-outline (:color blue)
-  ("SPC" consult-outline "consult")		; go to outline header
-  ("a" outline-insert-heading "insert")
-  ("m" outline-promote "promote")
-  ("i" outline-demote "demote")
-  ("n" outline-move-subtree-down "move down")
-  ("e" outline-move-subtree-up "move up")
-  ("t" my/hide-outline-body-mode "toggle bodies")
-  ("c" org-agenda "agenda")
+(pretty-hydra-define hydra-outline (:color blue)
+  ("Edit"
+   (("m" outline-promote "promote")
+    ("i" outline-demote "demote")
+    ("n" outline-move-subtree-down "move down")
+    ("e" outline-move-subtree-up "move up")
+    ("a" outline-insert-heading "insert"))
+   "Misc"
+   (("SPC" consult-outline "consult")		; go to outline header
+    ("t" my/hide-outline-body-mode "toggle bodies")
+    ("c" org-agenda "agenda")
+    ("l" hydra-org-latex/body "latex hyra"))
+   )
   )
+
+(pretty-hydra-define hydra-org-latex  (:color blue)
+  ("resize"
+   (("e" xenops-increase-size "+" :color red)
+    ("n" xenops-decrease-size "-" :color red))
+   "edit"
+   (("b" cdlatex-environment "begin"))
+   )
+  )
+
 
 ;; ;;;;; LSP Hydra
 ;; (defhydra hydra-lsp (:color blue)
@@ -879,24 +938,29 @@ library/userland functions"
 ;; )
 
 ;;;;; Go Hydra
-(defhydra hydra-go (:color blue)
-  ("f" find-file-at-point "file")               ; go to file, target guessed by cursor
-  ("d" xref-find-definitions "definition")
-  ("r" xref-find-references "references")
-  ("u" xref-go-back "back")
-  ("a" evil-Set-marker "set marker")			; adds evil marker
-  ("m" evil-goto-mark-line "go to marker")		; go do specified marker
-  ("n" evil-next-mark-line "next marker")		; go to next evil marker
-  ("e" evil-previous-mark-line "previous marker")		; go to previous evil marker
-  ("l" evil-show-marks "list markers")			; lists evil marks
-  ("g" consult-imenu "consult")			; jump to major definitions
+(pretty-hydra-define hydra-go (:color blue)
+  ("Go"
+   (("f" find-file-at-point "file")
+    ("d" xref-find-definitions "definition")
+    ("r" xref-find-references "references")
+    ("u" xref-go-back "back"))
+   "Markers"
+   (("a" evil-set-marker "set marker")
+    ("m" evil-goto-mark-line "go to marker")
+    ("n" evil-next-mark-line "next marker")
+    ("e" evil-previous-mark-line "previous marker")
+    ("l" evil-show-marks "list markers")
+    ("g" consult-imenu "consult"))
+   )
   )
 
 ;;;;; Eglot Hydra
-(defhydra hydra-eglot (:color blue)
-  ("f" eglot-code-action-quickfix "quickfix")
-  ("d" eldoc "doc")
-  ("r" eglot-rename "rename")
+(pretty-hydra-define hydra-eglot (:color blue)
+  ("Eglot"
+   (("f" eglot-code-action-quickfix "quickfix")
+    ("d" eldoc "doc")
+    ("r" eglot-rename "rename"))
+   )
   )
 
 
