@@ -1,4 +1,4 @@
-;; init.el
+;; Init.el
 ;; TODO company kinda wonkey but works
 ;; TODO color hex colors
 ;; TODO -nw support
@@ -77,6 +77,9 @@
 
 (recentf-mode)				; dashboard mode forgets tramp files else
 
+(global-visual-line-mode)
+
+
 
 
 (straight-use-package
@@ -96,23 +99,44 @@
 (straight-use-package 'org)
 (require 'org)
 (add-hook 'org-mode-hook 'org-indent-mode)
+(straight-use-package 'org-bullets)
+(add-hook 'org-mode-hook 'org-bullets-mode)
+(add-hook 'org-mode-hook 'variable-pitch-mode)
+(set-face-attribute 'variable-pitch nil :family "DejaVu Serif" :height 1.1)
 
 ;;;;; org latex
 (straight-use-package 'cdlatex)
 (straight-use-package 'xenops)
 (straight-use-package 'auctex)
+
+;; (setq org-pretty-entities t)
 (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 (add-hook 'org-mode-hook #'xenops-mode)
 (setq org-preview-latex-default-process 'dvisvgm)
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.3))
 (setq xenops-math-image-scale-factor 1.3)
+
+;;;;; CDLaTeX
 (setq cdlatex-command-alist
       '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
 	("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
-	("aln" "Insert align* env" "" cdlatex-environment ("align*") t nil)
+	("ali" "Insert align* env" "" cdlatex-environment ("align*") t nil)
+	("equ" "Insert equation* env" "" cdlatex-environment ("equation*") t nil)
 	))
+
 (setq cdlatex-math-modify-alist
       '((98 "\\mathbb" nil t nil nil)))
+
+(setq cdlatex-math-symbol-alist
+      '((108 ("\\lambda" "\\ell" "\\laplace"))
+	(102 ("\\phi" "\\varphi" "\\fourier"))))
+
+(setq cdlatex-env-alist
+      '(("equation*" "\\begin{equation*}
+?
+\\end{equation*}" nil)))
+
+
 (setq org-agenda-files (directory-files-recursively "~/Documents/" "\\.org$"))
 
 (custom-set-variables
@@ -122,6 +146,8 @@
  ;; If there is more than one, they won't work right.
  '(auth-source-save-behavior nil)
  '(custom-enabled-themes '(dracula))
+ '(custom-safe-themes
+   '("a5270d86fac30303c5910be7403467662d7601b821af2ff0c4eb181153ebfc0a" "fee7287586b17efbfda432f05539b58e86e059e78006ce9237b8732fde991b4c" "4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3" default))
  '(org-agenda-files
    '("/home/karl/Documents/uni/wi24/orga.org" "/home/karl/Documents/uni/wi24/sus/tut1.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (C . t) (python . t)))
@@ -130,6 +156,15 @@
 
 ;;;;; org agenda
 (setq org-agenda-window-setup 'current-window)
+
+;;;;; org inline pdf
+(straight-use-package 'org-inline-pdf)
+(add-hook 'org-mode-hook #'org-inline-pdf-mode)
+;; (setq org-inline-pdf-cache-directory "/home/karl/.emacs.d/org-inline-pdf-cache")
+(setq org-inline-pdf-cache-directory ())
+
+;;;;; org inline images
+(setq org-startup-with-inline-images t)
 
 ;;; EXWM
 (straight-use-package 'exwm)
@@ -179,6 +214,11 @@
 (straight-use-package 'marginalia)	; Show explanations in vertico margin
 (marginalia-mode)
 
+(straight-use-package 'prescient)
+(straight-use-package 'vertico-prescient)
+(vertico-prescient-mode)
+(prescient-persist-mode)
+
 ;; (straight-use-package 'mini-frame)	; Minibuffer in center when typing
 ;; (setq mini-frame-show-parameters '((top . 0) (width . 0.7) (left . 0.5)))
 ;; (mini-frame-mode)
@@ -202,11 +242,26 @@
       completion-category-overrides '((file (stylef partial-completion))))
 
 ;;; IDE tools
+;;;; Project
 (require 'project)
 (setq project-switch-commands 'project-find-file)
 
+;;;; Direnv
 (straight-use-package 'direnv)
 (direnv-mode)
+
+;;;; Completion
+(straight-use-package 'corfu)
+(straight-use-package 'corfu-prescient)
+(corfu-prescient-mode)
+
+(setq corfu-auto 't)
+(setq corfu-auto        t
+      corfu-auto-delay  0
+      corfu-auto-prefix 3)
+(keymap-unset corfu-map "RET")
+(add-hook 'prog-mode-hook 'corfu-mode)
+
 
 ;;;; Tree sitter
 ;; (require 'treesit)
@@ -274,8 +329,8 @@
 ;; (setq inhibit-startup-message t)	; Disable splash screen
 ;; (setq initial-scratch-message nil)
 
-(setq-default display-line-numbers 'relative) ; Show line numbers
-(setq-default display-line-numbers-width 3)
+;; (setq-default display-line-numbers 'relative) ; Show line numbers
+;; (setq-default display-line-numbers-width 3)
 
 
 ;;;; Theme
@@ -312,60 +367,82 @@
   )
 
 
-;; ;;;;; Gruvbox
-;; ;;;;;; Light
-;; (defun gruv-light ()
-;;   (interactive)
-;;   (straight-use-package 'gruvbox-theme)
-;;   (load-theme 'gruvbox-light-medium t)
+;;;;; Gruvbox
+;;;;;; Light
+(defun gruv-light ()
+  (interactive)
+  (straight-use-package 'gruvbox-theme)
+  (load-theme 'gruvbox-light-hard t)
 
-;;   (custom-theme-set-faces
-;;    'gruvbox-light-medium
-;;    '(outshine-level-1 ((t (
-;; 			   :foreground "#d65d0e"
-;; 			   ))))
-;;    '(outshine-level-2 ((t (
-;; 			   :foreground "#d79921"
-;; 			   ))))
-;;    '(outshine-level-3 ((t (
-;; 			   :foreground "#458588"
-;;  			   ))))
-;;    '(outshine-level-4 ((t (
-;; 			   :foreground "#689d6a"
-;; 			   ))))
-;;    '(outshine-level-5 ((t (
-;; 			   :foreground "#98971a"
-;; 			   ))))
-;;    )
-;;   (enable-theme 'gruvbox-light-medium)
-;;   )
+  (custom-theme-set-faces
+    'gruvbox-light-hard
+    '(hl-line ((t (
+			   :background "#fbf1c7"
+			   ))))
+    '(region ((t (
+			   :background "#ebdbb2"
+			   ))))
+
+    '(mode-line ((t (
+			   :background "#ebdbb2"
+			   ))))
+  )
+  (enable-theme 'gruvbox-light-hard)
+  )
 
 ;;;;;; Dark
-;; (defun gruv-dark ()
-;; (interactive)
-;; (straight-use-package 'gruvbox-theme)
-;; (load-theme 'gruvbox-dark-medium t)
-					;
-;;   (custom-theme-set-faces
-;;    'gruvbox-dark-medium
-;;    '(outshine-level-1 ((t (
-;; 			   :foreground "#ff8700"
-;; 			   ))))
-;;    '(outshine-level-2 ((t (
-;; 			   :foreground "#ffaf00"
-;; 			   ))))
-;;    '(outshine-level-3 ((t (
-;; 			   :foreground "#87afaf"
-;; 			   ))))
-;;    '(outshine-level-4 ((t (
-;; 			   :foreground "#87af87"
-;; 			   ))))
-;;    '(outshine-level-5 ((t (
-;; 			   :foreground "#afaf00"
-;; 			   ))))
-;;    )
-;;   (enable-theme 'gruvbox-dark-medium)
-;;   )
+(defun gruv-dark ()
+(interactive)
+(straight-use-package 'gruvbox-theme)
+(load-theme 'gruvbox-dark-medium t)
+					
+  (custom-theme-set-faces
+   'gruvbox-dark-medium
+   '(outshine-level-1 ((t (
+			   :foreground "#ff8700"
+			   ))))
+   '(outshine-level-2 ((t (
+			   :foreground "#ffaf00"
+			   ))))
+   '(outshine-level-3 ((t (
+			   :foreground "#87afaf"
+			   ))))
+   '(outshine-level-4 ((t (
+			   :foreground "#87af87"
+			   ))))
+   '(outshine-level-5 ((t (
+			   :foreground "#afaf00"
+			   ))))
+   )
+  (enable-theme 'gruvbox-dark-medium)
+  )
+
+;;;;; Solarized
+(defun solarized-light ()
+(interactive)
+(straight-use-package 'solarized-theme)
+(load-theme 'solarized-light t)
+					
+  ;; (custom-theme-set-faces
+  ;;  'gruvbox-dark-medium
+  ;;  '(outshine-level-1 ((t (
+  ;; 			   :foreground "#ff8700"
+  ;; 			   ))))
+  ;;  '(outshine-level-2 ((t (
+  ;; 			   :foreground "#ffaf00"
+  ;; 			   ))))
+  ;;  '(outshine-level-3 ((t (
+  ;; 			   :foreground "#87afaf"
+  ;; 			   ))))
+  ;;  '(outshine-level-4 ((t (
+  ;; 			   :foreground "#87af87"
+  ;; 			   ))))
+  ;;  '(outshine-level-5 ((t (
+  ;; 			   :foreground "#afaf00"
+  ;; 			   ))))
+  ;;  )
+  (enable-theme 'solarized-light)
+  )
 
 ;; (defun lightmode ()
 ;;   (interactive)
@@ -378,12 +455,14 @@
   (interactive)
   (dracula))
 
-(darkmode)
+;; (darkmode)
+(gruv-light)
+;; (solarized-light)
 
 
 ;; ;;;; Margins
 ;; (straight-use-package 'perfect-margin)
-;; (require 'perfect-margin)
+;; ;; (require 'perfect-margin)
 ;; (setq perfect-margin-visible-width 120)
 ;; (perfect-margin-mode 1)
 ;; (add-hook 'org-mode-hook 'visual-line-mode)
@@ -412,16 +491,24 @@
 (doom-modeline-mode)
 
 ;;;; Outline
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
- '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
- '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
- '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
- '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
+(set-face-attribute 'outline-1 nil :inherit 'org-level-1)
+(set-face-attribute 'outline-2 nil :inherit 'org-level-2)
+(set-face-attribute 'outline-3 nil :inherit 'org-level-3)
+(set-face-attribute 'outline-4 nil :inherit 'org-level-4)
+(set-face-attribute 'outline-5 nil :inherit 'org-level-5)
+(set-face-attribute 'outline-6 nil :inherit 'org-level-6)
+(set-face-attribute 'outline-7 nil :inherit 'org-level-7)
+(set-face-attribute 'outline-8 nil :inherit 'org-level-8)
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(outshine-level-1 ((t (:family "Victor Mono" :height 1.75 :weight extra-bold :slant italic :underline t))))
+;;  '(outshine-level-2 ((t (:family "Victor Mono" :height 1.5 :weight extra-bold :slant italic :underline t))))
+;;  '(outshine-level-3 ((t (:family "Victor Mono" :height 1.25 :weight bold :slant italic :underline t))))
+;;  '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
+;;  '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
 
 ;; ;;;; Org-mode
 ;;(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
@@ -544,6 +631,7 @@ library/userland functions"
   (interactive)
   (indent-region (point-min) (point-max)))
 
+
 ;;;; exwm
 (defun my/exwm-workspace-next ()
   "Switch to next exwm workspace"
@@ -571,26 +659,57 @@ library/userland functions"
   (interactive)
   (exwm-input--fake-key ?\C-c))
 
-(require 'xdg)
-(defun my/run-program ()
-  ""
-  (interactive)
-  (let ((hash (make-hash-table :test #'equal))
-	(data-dirs (xdg-data-dirs))
-        result)
-    (dolist (dir data-dirs)
-      (when (file-exists-p dir)
-        (let ((dir (file-name-as-directory dir)))
-          ;; Function `directory-files-recursively' added in Emacs 25.1.
-          (dolist (file (directory-files-recursively dir "\\.desktop\\'"))
-            (let ((id (subst-char-in-string ?/ ?- (file-relative-name file dir))))
-              (when (and (not (gethash id hash)) (file-readable-p file))
-                (push (cons id file) result)
-                (puthash id file hash)))))))
-    (prin1 result))
-  )
-;; (completing-read "Run: " '(("a") ("b") ("c"))))
+;; (require 'xdg)
+;; (defun my/run-program ()
+;;   ""
+;;   (interactive)
+;;   (let ((hash (make-hash-table :test #'equal))
+;; 	(data-dirs (xdg-data-dirs))
+;;         result)
+;;     (dolist (dir data-dirs)
+;;       (when (file-exists-p dir)
+;;         (let ((dir (file-name-as-directory dir)))
+;;           ;; Function `directory-files-recursively' added in Emacs 25.1.
+;;           (dolist (file (directory-files-recursively dir "\\.desktop\\'"))
+;;             (let ((id (subst-char-in-string ?/ ?- (file-relative-name file dir))))
+;;               (when (and (not (gethash id hash)) (file-readable-p file))
+;;                 (push (cons id file) result)
+;;                 (puthash id file hash)))))))
+;;     (prin1 result))
+;;   )
+;; ;; (completing-read "Run: " '(("a") ("b") ("c"))))
 
+;;;; Center document
+(defvar center-document-desired-width 100
+  "The desired width of a document centered in the window.")
+
+(defun center-document--adjust-margins ()
+  ;; Reset margins first before recalculating
+  (set-window-parameter nil 'min-margins nil)
+  (set-window-margins nil nil)
+
+  ;; Adjust margins if the mode is on
+  (when center-document-mode
+    (let ((margin-width (max 0
+			     (truncate
+			      (/ (- (window-width)
+				    center-document-desired-width)
+				 2.0)))))
+      (when (> margin-width 0)
+	(set-window-parameter nil 'min-margins '(0 . 0))
+	(set-window-margins nil margin-width margin-width)))))
+
+(define-minor-mode center-document-mode
+  "Toggle centered text layout in the current buffer."
+  :lighter " Centered"
+  :group 'editing
+  (if center-document-mode
+      (add-hook 'window-configuration-change-hook #'center-document--adjust-margins 'append 'local)
+    (remove-hook 'window-configuration-change-hook #'center-document--adjust-margins 'local))
+  (center-document--adjust-margins))
+
+(add-hook 'text-mode-hook #'center-document-mode)
+(add-hook 'prog-mode-hook #'center-document-mode)
 
 
 
@@ -688,6 +807,8 @@ library/userland functions"
 ;;;;; lisp
 (general-def emacs-lisp-mode-map
   "TAB" 'completion-at-point)
+(general-def 'visual emacs-lisp-mode-map
+  "C-<return>" 'eval-region)
 
 ;;;;; Vertico
 (general-def vertico-map
@@ -728,11 +849,19 @@ library/userland functions"
 ;;;;; Org CDLaTeX
 (general-def '(insert) org-cdlatex-mode-map
   "<tab>" 'cdlatex-tab
-  "C-l" 'cdlatex-dollar
+  "C-d" 'cdlatex-dollar
+  "C-a" '(lambda () (interactive) (cdlatex-environment "align*"))
+  "C-s" 'cdlatex-math-symbol
   )
 
+(general-def '(normal insert visual) org-cdlatex-mode-map
+  "C-f" 'org-cdlatex-math-modify
+  )
+
+
 (general-def  org-cdlatex-mode-map
-  "C-l" 'org-latex-preview)
+  ;; "C-l" 'org-latex-preview)
+  )
 
 ;;;;; Hydras
 (general-def '(normal visual motion)
@@ -767,6 +896,12 @@ library/userland functions"
   "SPC" 'hydra-leader/body
   )
 
+;;;;; Magit
+(general-def magit-status-mode-map
+  "n" 'magit-section-forward
+  "e" 'magit-section-backward
+  )
+
 ;;;;; EXWM
 (defun my/pactl-volume ()
   (interactive)
@@ -795,8 +930,10 @@ library/userland functions"
 
 	(,(kbd "s-SPC") . hydra-leader/body)
 
-	(,(kbd "s-n") . evil-window-next)
-	(,(kbd "s-e") . evil-window-prev)
+	(,(kbd "s-m") . evil-window-prev)
+	(,(kbd "s-n") . next-buffer)
+	(,(kbd "s-e") . previous-buffer)
+	(,(kbd "s-i") . evil-window-next)
 
 	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (let ((default-directory "~")) (async-shell-command "firefox")))))
 
@@ -844,9 +981,10 @@ library/userland functions"
     ("e" hydra-eglot/body "eglot")
     ("c" comment-dwim "comment"))
    "misc"
-   (("." find-file "find file")
-    ("SPC" project-find-file "find file in project")
-    ("t" eat "term"))
+   (("SPC" recentf "recent file")
+    ("." find-file "find file")
+    ("t" eat "term")
+    ("r" async-shell-command "run"))
    )
   )
 
@@ -918,6 +1056,8 @@ library/userland functions"
     ("t" my/hide-outline-body-mode "toggle bodies")
     ("c" org-agenda "agenda")
     ("l" hydra-org-latex/body "latex hyra"))
+   "Display"
+   (("p" org-toggle-inline-images "toggle inline images"))
    )
   )
 
@@ -949,8 +1089,9 @@ library/userland functions"
     ("m" evil-goto-mark-line "go to marker")
     ("n" evil-next-mark-line "next marker")
     ("e" evil-previous-mark-line "previous marker")
-    ("l" evil-show-marks "list markers")
-    ("g" consult-imenu "consult"))
+    ("l" evil-show-marks "list markers"))
+   "Other"
+    (("SPC" consult-imenu "consult"))
    )
   )
 
