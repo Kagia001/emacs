@@ -2,7 +2,7 @@
 ;; TODO company kinda wonkey but works
 ;; TODO color hex colors
 ;; TODO -nw support
-;; mickeynp/combobulate
+;; Mickeyn/combobulate
 ;; TODO modernemacs.com
 ;; TODO svg todo and header
 ;; emacs 29:
@@ -13,7 +13,7 @@
 (setq gc-cons-threshold (* 50 1000 1000))	; 100MB
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000)))) ; 2MB
 
-;; Straight
+;; * Straight
 (setq straight-check-for-modifications '(watch-files find-when-checking)) ; Speeds up straight startup
 
 ;; This whack shit is how you install straight apparently
@@ -32,11 +32,13 @@
 ;;; Misc.
 (setq ring-bell-function 'ignore)	; Turn off beep
 
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
 
-(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
-(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
-(setq scroll-step 1) ;; keyboard scroll one line at a time
+;; (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+;; (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+;; (setq scroll-step 1) ;; keyboard scroll one line at a time
+
+(pixel-scroll-precision-mode)
 
 ;; (desktop-save-mode 1)		; Save open windows and buffers
 ;; (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
@@ -46,8 +48,6 @@
 (straight-use-package 'smartparens)	; Close brackets
 (require 'smartparens-config)
 (add-hook 'prog-mode-hook 'smartparens-mode)
-
-(setq evil-undo-system 'undo-redo)	; Evil redo
 
 (straight-use-package 'pdf-tools)
 (pdf-loader-install) ; On demand loading, leads to faster startup time
@@ -76,6 +76,7 @@
 (straight-use-package 'bluetooth)
 
 (recentf-mode)				; dashboard mode forgets tramp files else
+(add-hook 'buffer-list-update-hook #'recentf-track-opened-file)
 
 (global-visual-line-mode)
 
@@ -92,8 +93,9 @@
 
 ;;;; Org mode
 ;;;;; outshine
-(straight-use-package 'outshine)	; Comment headers
-(add-hook 'prog-mode-hook 'outshine-mode)
+;; (straight-use-package 'outshine)	; Comment headers
+;; (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
+(add-hook 'c-mode-hook (lambda () (setq outline-regexp "# \\*+")))
 
 ;;;;; org main
 (straight-use-package 'org)
@@ -203,7 +205,7 @@
 ;;; Completion Framework
 (straight-use-package 'vertico)         ; Completion framework
 (vertico-mode)
-(setq-default vertico-count 25)		; Show 25 options
+(setq-default vertico-count 10)		; Show 25 options
 (setq read-file-name-completion-ignore-case t ; Be case insensitive
       read-buffer-completion-ignore-case t
       completion-ignore-case t)
@@ -323,7 +325,7 @@
 (scroll-bar-mode -1)			; Remove scroll bar
 (tool-bar-mode -1)                      ; Remove tool bar
 (blink-cursor-mode -1)
-(global-hl-line-mode)			; Highlight current line
+;; (global-hl-line-mode)			; Highlight current line
 (add-to-list 'default-frame-alist '(font . "fira code nerd font-13")) ; Font
 
 ;; (setq inhibit-startup-message t)	; Disable splash screen
@@ -375,27 +377,28 @@
   (load-theme 'gruvbox-light-hard t)
 
   (custom-theme-set-faces
-    'gruvbox-light-hard
-    '(hl-line ((t (
-			   :background "#fbf1c7"
-			   ))))
-    '(region ((t (
-			   :background "#ebdbb2"
-			   ))))
+   'gruvbox-light-hard
+   '(hl-line ((t (
+		  :background "#fbf1c7"
+		  ))))
+   '(region ((t (
+		 :background "#fbf1c7"
+		 ;; :box (:line-width (-1 . -1))
+		 ))))
 
-    '(mode-line ((t (
-			   :background "#ebdbb2"
-			   ))))
-  )
+   '(mode-line ((t (
+		    :background "#ebdbb2"
+		    ))))
+   )
   (enable-theme 'gruvbox-light-hard)
   )
 
 ;;;;;; Dark
 (defun gruv-dark ()
-(interactive)
-(straight-use-package 'gruvbox-theme)
-(load-theme 'gruvbox-dark-medium t)
-					
+  (interactive)
+  (straight-use-package 'gruvbox-theme)
+  (load-theme 'gruvbox-dark-medium t)
+  
   (custom-theme-set-faces
    'gruvbox-dark-medium
    '(outshine-level-1 ((t (
@@ -419,10 +422,10 @@
 
 ;;;;; Solarized
 (defun solarized-light ()
-(interactive)
-(straight-use-package 'solarized-theme)
-(load-theme 'solarized-light t)
-					
+  (interactive)
+  (straight-use-package 'solarized-theme)
+  (load-theme 'solarized-light t)
+  
   ;; (custom-theme-set-faces
   ;;  'gruvbox-dark-medium
   ;;  '(outshine-level-1 ((t (
@@ -510,9 +513,9 @@
 ;;  '(outshine-level-4 ((t (:family "Victor Mono" :weight bold :height 1.25 :weight bold :slant italic :underline t))))
 ;;  '(outshine-level-5 ((t (:family "Victor Mono" :height 1.0 :weight bold :slant italic :underline t)))))
 
-;; ;;;; Org-mode
-;;(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.75))
-
+;;;; Org-mode
+(set-face-attribute 'org-level-1 nil :height 1.3 :weight 'semi-bold)
+(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
 ;;; Syntax highlighting
 ;; ;;;; Treesitter
 ;; ;; Tree siter does some cool parsing stuff. Probably the best syntax highlighting, doesnt support that many languages though as of now
@@ -710,6 +713,8 @@ library/userland functions"
 
 (add-hook 'text-mode-hook #'center-document-mode)
 (add-hook 'prog-mode-hook #'center-document-mode)
+(add-hook 'text-mode-hook (lambda () (setq center-document-desired-width 90)))
+(add-hook 'prog-mode-hook (lambda () (setq center-document-desired-width 120)))
 
 
 
@@ -724,183 +729,249 @@ library/userland functions"
   )
 ;;; Keybinds
 ;;;; Keybind Packages
+(straight-use-package 'meow)
 
-(straight-use-package 'evil)            ; vim emulation
-(straight-use-package 'evil-snipe)	; snipe letter
-(setq evil-snipe-scope 'whole-visible)
-(setq evil-snipe-enable-highlight nil)
-(setq evil-snipe-enable-incremental-highlight nil)
-(evil-mode)
-(evil-set-initial-state 'dashboard-mode 'emacs)
+(require 'meow)
+(setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+(meow-motion-overwrite-define-key
+ ;; Use e to move up, n to move down.
+ ;; Since special modes usually use n to move down, we only overwrite e here.
+ '("e" . meow-prev)
+ '("<escape>" . ignore))
 
-(straight-use-package 'general)         ; Keybind wrapper
-(general-auto-unbind-keys)              ; Fixes some prefix key issues
+(defun meow-negative-find () (interactive)
+       (let ((current-prefix-arg -1)) (call-interactively 'meow-find)))
+
+(defun meow-negative-line () (interactive)
+       (let ((current-prefix-arg -1)) (call-interactively 'meow-line)))
+
+(defun meow-tab-dwim () (interactive)
+       ;; (call-interactively 'negative-argument))
+       (if meow--selection
+	   (call-interactively 'meow-reverse)
+	 (cond ((org-at-heading-p) (call-interactively 'org-cycle))
+	       (t (call-interactively 'negative-argument)))))
+
+(defun narrow-dwim () (interactive)
+       (cond ((eq major-mode 'org-mode) (org-narrow-to-subtree))
+	     ((bound-and-true-p outshine-mode) (outshine-narrow-to-subtree))
+	     (t (narrow-to-defun))))
+
+(defun testtest () (interactive)
+       (widen))
+
+(defun toggle-narrow-dwim () (interactive)
+       (if (buffer-narrowed-p)
+	   (widen)
+	 (narrow-dwim)))
+
+(defun my/meow-open-below ()
+  "Open a newline below and switch to INSERT state."
+  (interactive)
+  (if meow--temp-normal
+      (progn
+        (message "Quit temporary normal mode")
+        (meow--switch-state 'motion))
+    (meow--switch-state 'insert)
+    (goto-char (line-end-position))
+    (meow--execute-kbd-macro "<return>")))
+
+
+;; (defun meow-esc-dwim () (interactive)
+;;        (if meow--selection
+;; 	   (call-interactively 'meow-cancel-selection)
+;; 	 (call-interactively 'meow-append)))
+
+(meow-leader-define-key
+ '("?" . meow-cheatsheet)
+ ;; To execute the originally e in MOTION state, use SPC e.  '("e" . "H-e")
+ '("1" . meow-digit-argument)
+ '("2" . meow-digit-argument)
+ '("3" . meow-digit-argument)
+ '("4" . meow-digit-argument)
+ '("5" . meow-digit-argument)
+ '("6" . meow-digit-argument)
+ '("7" . meow-digit-argument)
+ '("8" . meow-digit-argument)
+ '("9" . meow-digit-argument)
+ '("0" . meow-digit-argument))
+
+(meow-normal-define-key
+ '("<escape>" . meow-cancel-selection)
+ '("0" . meow-expand-0)
+ '("1" . meow-expand-1)
+ '("2" . meow-expand-2)
+ '("3" . meow-expand-3)
+ '("4" . meow-expand-4)
+ '("5" . meow-expand-5)
+ '("6" . meow_expand-6)
+ '("7" . meow-expand-7)
+ '("8" . meow-expand-8)
+ '("9" . meow-expand-9)
+ 
+ '("<tab>" . meow-tab-dwim)
+ '("q" . meow-quit)
+ '("w" . meow-mark-word)
+ '("W" . meow-mark-symbol)
+ '("f" . meow-next-word)
+ '("F" . meow-next-symbol)
+ '("p" . meow-yank)
+ '("b" . meow-back-word)
+ '("B" . meow-back-symbol)
+ '("j" . meow-join)
+ '("l" . meow-line)
+ '("L" . meow-negative-line)
+ '("u" . meow-undo)
+ '("U" . meow-undo-in-selection)
+ '("y" . meow-save)
+ '("'" . repeat)
+
+ '("a" . meow-insert)
+ '("A" . meow-open-above)
+ '("r" . meow-replace)
+ '("s" . meow-find)
+ '("S" . meow-negative-find)
+ '("t" . meow-append)
+ '("T" . my/meow-open-below)
+ '("g" . meow-cancel-selection)
+ '("G" . meow-grab)
+ '("m" . meow-left)
+ '("M" . meow-left-expand)
+ '("n" . meow-next)
+ '("N" . meow-next-expand)
+ '("e" . meow-prev)
+ '("E" . meow-prev-expand)
+ '("i" . meow-right)
+ '("I" . meow-right-expand)
+ '("o" . meow-block)
+ '("O" . meow-to-block)
+ '("(" . meow-beginning-of-thing)
+ '(")" . meow-end-of-thing)
+
+ '("z" . meow-pop-selection)
+ '("x" . meow-delete)
+ '("X" . meow-backward-delete)
+ '("d" . meow-kill)
+ '("c" . meow-change)
+ '("v" . meow-visit)
+ '("/" . consult-line)
+ '("h" . meow-search)
+ '("H" . meow-mark-symbol)
+ '("," . meow-inner-of-thing)
+ '("." . meow-bounds-of-thing)
+ '("-" . meow-tab-dwim)
+
+ '("SPC" . hydra-leader/body)
+ )
+
+(meow-define-keys 'insert
+  '("<return>" . newline)
+  
+  '("C-m" . meow-left)
+  '("C-n" . next-line)
+  '("C-e" . meow-prev)
+  '("C-i" . meow-right)
+  )
+
+(setq meow-keypad-leader-dispatch "H-C-M-1") ; More or less disable keypad
+;; (define-key mode-specific-map (kbd "t") #'toggle-narrow-dwim)
+
+(define-key emacs-lisp-mode-map (kbd "C-<return>") #'eval-region)
+
+(define-key vertico-map (kbd "C-n") #'vertico-next)
+(define-key vertico-map (kbd "C-e") #'vertico-previous)
+
+(define-key org-mode-map (kbd "<tab>") #'org-cycle)
+(define-key org-mode-map (kbd "M-m") #'org-metaleft)
+(define-key org-mode-map (kbd "M-n") #'org-metadown)
+(define-key org-mode-map (kbd "M-e") #'org-metaup)
+(define-key org-mode-map (kbd "M-i") #'org-metaright)
+(define-key org-mode-map (kbd "C-M-m") #'org-shiftright)
+(define-key org-mode-map (kbd "C-M-i") #'org-shiftleft)
+(define-key org-mode-map (kbd "C-m") #'outline-up-heading)
+(define-key org-mode-map (kbd "C-n") #'outline-forward-same-level)
+(define-key org-mode-map (kbd "C-e") #'outline-backward-same-level)
+(define-key org-mode-map (kbd "C-i") #'outline-next-visible-heading)
+(define-key org-mode-map (kbd "M-<return>") #'org-meta-return)
+
+;; (define-key org-cdlatex-mode-map (kbd "<tab>") #'cdlatex-tab)
+(define-key org-cdlatex-mode-map (kbd "C-d") #'cdlatex-dollar)
+(define-key org-cdlatex-mode-map (kbd "C-a") #'(lambda () (interactive) (cdlatex-environment "align*")))
+(define-key org-cdlatex-mode-map (kbd "C-s") #'cdlatex-math-symbol)
+(define-key org-cdlatex-mode-map (kbd "C-f") #'cdlatex-math-modify)
+
+(define-key outline-minor-mode-map (kbd "C-m") #'outline-up-heading)
+(define-key outline-minor-mode-map (kbd "C-n") #'outline-forward-same-level)
+(define-key outline-minor-mode-map (kbd "C-e") #'outline-backward-same-level)
+(define-key outline-minor-mode-map (kbd "C-i") #'outline-next-visible-heading)
+
+(setq meow-goto-line-function 'consult-goto-line)
+(setq meow-use-clipboard t)
+(setq meow-cursor-type-default 'box)
+(setq meow-cursor-type-normal '(bar . 2))
+(setq meow-cursor-type-motion 'box)
+(setq meow-cursor-type-insert '(bar . 2))
+(setq meow-cursor-type-keypad 'hollow)
+
+;; Fix because meow goes by binds and not fns
+(keymap-global-set "H-f" 'forward-char)
+(setq meow--kbd-forward-char "H-f")
+(keymap-global-set "H-n" 'next-line)
+(setq meow--kbd-forward-line "H-n")
+(keymap-global-set "H-w" 'delete-char)
+(setq meow--kbd-delete-char "H-w")
+
+
+
+
+
+(meow-global-mode 1)
+
+;; (straight-use-package 'general)         ; Keybind wrapper
+;; (general-auto-unbind-keys)              ; Fixes some prefix key issues
 
 (straight-use-package 'hydra)
 (straight-use-package 'pretty-hydra)
 
 
-(defun fix-ci-cm ()			; C-i and C-m are identical to TAB and RET. This moves C-i and C-m to H-i and C-m. Doesnt work in TTY mode
-  (define-key input-decode-map (kbd "C-i") (kbd "H-i"))
-  (define-key input-decode-map (kbd "C-m") (kbd "H-m")))
-(add-hook 'window-setup-hook 'fix-ci-cm) ; Run fix-ci-cm for each new frame. Cant just run in init when using emacs as a server.
+;; ;;;;; Hydras
+;; (general-def '(normal visual motion)
+;;   "SPC" 'hydra-leader/body)
+;; (general-def '(insert replace operator)
+;;   "C-SPC" 'hydra-leader/body)
 
-
-;;;; Binds
-;;;;; Evil
-(general-def '(normal visual motion)
-  "m" 'evil-backward-char
-  "n" 'evil-next-line
-  "e" 'evil-previous-line
-  "i" 'evil-forward-char
-
-  "f" 'evil-forward-WORD-end
-  "b" 'evil-backward-WORD-begin
-
-  "k" 'evil-search-next
-  "K" 'evil-search-previous
-
-  "s" 'evil-snipe-s
-  "S" 'evil-snipe-S
-
-  "(" 'evil-jump-item			; matching bracket
-
-
-  "H-m" 'outline-up-heading
-  "C-n" 'outline-forward-same-level
-  "C-e" 'outline-backward-same-level
-  "H-i" 'outline-next-visible-heading
-
-  "/" 'consult-line
-
-  "SPC" nil
-  "C-d" nil
-  )
-
-(general-def 'normal
-  "a" 'evil-insert
-  "A" 'evil-insert-line
-  "t" 'evil-append
-  "T" 'evil-append-line
-  )
-
-(general-def 'visual
-  "A" 'evil-insert
-  "T" 'evil-append
-  )
-
-(general-def 'insert
-  "H-m" 'left-char
-  "C-n" 'next-line
-  "C-e" 'previous-line
-  "H-i" 'right-char
-  "C-S-m" 'left-word
-  "C-S-n" 'forward-paragraph
-  "C-S-e" 'backward-paragraph
-  "C-S-i" 'right-word
-  )
-
-;;;;; Eglot
-(general-def eglot-mode-map
-  "TAB" 'completion-at-point)
-
-;;;;; lisp
-(general-def emacs-lisp-mode-map
-  "TAB" 'completion-at-point)
-(general-def 'visual emacs-lisp-mode-map
-  "C-<return>" 'eval-region)
-
-;;;;; Vertico
-(general-def vertico-map
-  "C-n" 'vertico-next
-  "C-e" 'vertico-previous)
-
-;; ;;;; Company
-;; (general-def company-mode-map
-;;   "C-t" 'company-select-next
-;;   "C-s" 'company-select-previous
+;; ;;;;; DocView
+;; (general-def 'doc-view-mode-map
+;;   "SPC"  'hydra-leader/body
+;;   "n" 'doc-view-next-page
+;;   "e" 'doc-view-previous-page
+;;   "gg" 'doc-view-first-page
+;;   "G" 'doc-view-last-page
 ;;   )
 
-;;;;; Dired
-(general-def dired-mode-map
-  "n" 'dired-next-line
-  "e" 'dired-previous-line
-  "SPC" 'hydra-leader/body
-  "/" 'dired-goto-file
-  )
-(general-def 'visual dired-mode-map
-  "m" 'dired-mark			; normal behaviour, needs to be doubled down on cause idk
-  )
+;; (general-def 'pdf-view-mode-map
+;;   "SPC"  'hydra-leader/body
+;;   "n" 'pdf-view-next-page-command
+;;   "e" 'pdf-view-previous-page-command
+;;   "gg" 'pdf-view-first-page
+;;   "G" 'pdf-view-last-page
+;;   )
 
-;;;;; Org-mode
-(general-def '(normal insert) org-mode-map
-  "<tab>" 'org-cycle
-  "M-m" 'org-metaleft
-  "M-n" 'org-metadown
-  "M-e" 'org-metaup
-  "M-i" 'org-metaright
-  )
+;; ;;;;; Dashboard
+;; (general-def dashboard-mode-map
+;;   "r" 'dashboard-jump-to-recents
+;;   "p" 'dashboard-jump-to-projects
+;;   "n" 'next-line
+;;   "e" 'previous-line
+;;   "." 'find-file
+;;   "SPC" 'hydra-leader/body
+;;   )
 
-(general-def '(normal) org-mode-map
-  "M" 'org-shiftleft
-  "I" 'org-shiftright
-  )
-
-;;;;; Org CDLaTeX
-(general-def '(insert) org-cdlatex-mode-map
-  "<tab>" 'cdlatex-tab
-  "C-d" 'cdlatex-dollar
-  "C-a" '(lambda () (interactive) (cdlatex-environment "align*"))
-  "C-s" 'cdlatex-math-symbol
-  )
-
-(general-def '(normal insert visual) org-cdlatex-mode-map
-  "C-f" 'org-cdlatex-math-modify
-  )
-
-
-(general-def  org-cdlatex-mode-map
-  ;; "C-l" 'org-latex-preview)
-  )
-
-;;;;; Hydras
-(general-def '(normal visual motion)
-  "SPC" 'hydra-leader/body)
-(general-def '(insert replace operator)
-  "C-SPC" 'hydra-leader/body)
-
-;;;;; DocView
-(general-def 'doc-view-mode-map
-  "SPC"  'hydra-leader/body
-  "n" 'doc-view-next-page
-  "e" 'doc-view-previous-page
-  "gg" 'doc-view-first-page
-  "G" 'doc-view-last-page
-  )
-
-(general-def 'pdf-view-mode-map
-  "SPC"  'hydra-leader/body
-  "n" 'pdf-view-next-page-command
-  "e" 'pdf-view-previous-page-command
-  "gg" 'pdf-view-first-page
-  "G" 'pdf-view-last-page
-  )
-
-;;;;; Dashboard
-(general-def dashboard-mode-map
-  "r" 'dashboard-jump-to-recents
-  "p" 'dashboard-jump-to-projects
-  "n" 'next-line
-  "e" 'previous-line
-  "." 'find-file
-  "SPC" 'hydra-leader/body
-  )
-
-;;;;; Magit
-(general-def magit-status-mode-map
-  "n" 'magit-section-forward
-  "e" 'magit-section-backward
-  )
+;; ;;;;; Magit
+;; (general-def magit-status-mode-map
+;;   "n" 'magit-section-forward
+;;   "e" 'magit-section-backward
+;;   )
 
 ;;;;; EXWM
 (defun my/pactl-volume ()
@@ -914,7 +985,7 @@ library/userland functions"
 
 
 (setq exwm-input-global-keys
-      `((,(kbd "C-d") . my/exwm-copy)
+      `((,(kbd "S-ESC") . my/exwm-copy)
 
 	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -U 10"))))
 	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (let ((default-directory "~")) (async-shell-command "light -A 10"))))
@@ -930,10 +1001,10 @@ library/userland functions"
 
 	(,(kbd "s-SPC") . hydra-leader/body)
 
-	(,(kbd "s-m") . evil-window-prev)
+	(,(kbd "s-m") . other-window)
 	(,(kbd "s-n") . next-buffer)
 	(,(kbd "s-e") . previous-buffer)
-	(,(kbd "s-i") . evil-window-next)
+	(,(kbd "s-i") . other-window)
 
 	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (let ((default-directory "~")) (async-shell-command "firefox")))))
 
@@ -964,7 +1035,7 @@ library/userland functions"
 
 ;;;; Hydras
 ;;;;; Leader Hydra
-(pretty-hydra-define hydra-leader (:color blue)
+(pretty-hydra-define hydra-leader (:color blue :idle 1)
   ;; ("SPC" projectile-find-file)		; find file in project
   ("EMACS"
    (("ESC" restart-emacs "restart emacs")
@@ -972,7 +1043,9 @@ library/userland functions"
     ("b" hydra-buffer/body "buffer")
     ("h" hydra-help/body "help")
     (";" execute-extended-command "M-x")
-    (":" pp-eval-expression "M-:"))
+    (":" pp-eval-expression "M-:")
+    ("s" basic-save-buffer "save")		; Save
+    ("<tab>" toggle-narrow-dwim "Toggle Narrowing"))
    ;; ("p" hydra-projectile/body)
    "editing"
    (("g" hydra-go/body "go")
@@ -989,24 +1062,22 @@ library/userland functions"
   )
 
 ;;;;; Window Hydra
-(pretty-hydra-define hydra-window (:color blue)
+(pretty-hydra-define hydra-window (:color blue :idle 1)
   ("Select"
-   (("n" evil-window-next "next")
-    ("e" evil-window-prev "prev"))
+   (("n" other-window "next"))
    "Split"
-   (("h" evil-window-split "hor. split")
-    ("i" evil-window-vsplit "ver. split"))
+   (("h" split-window-below "hor. split")
+    ("i" split-window-right "ver. split"))
    "Delete"
-   (("k" delete-window "delete")
-    ("K" delete-other-windows "delete other"))
+   (("d" delete-window "delete")
+    ("D" delete-other-windows "delete other"))
    )
   )
 
 ;;;;; Buffer Hydra
-(pretty-hydra-define hydra-buffer (:color blue)
+(pretty-hydra-define hydra-buffer (:color blue :idle 1)
   ("Buffer"
    (("SPC" consult-buffer "consult")
-    ("s" basic-save-buffer "save")		; Save
     ("k" kill-current-buffer "kill")
     ("b" mode-line-other-buffer "other")
     ("i" my/indent-buffer "indent buffer"))
@@ -1014,7 +1085,7 @@ library/userland functions"
   )
 
 ;;;;; Help Hydra
-(pretty-hydra-define hydra-help (:color blue)
+(pretty-hydra-define hydra-help (:color blue :idle 1)
   ("Help"
    (("k" describe-key "key")
     ("a" consult-apropos "apropos")
@@ -1025,7 +1096,7 @@ library/userland functions"
   )
 
 ;;;;; Project Hydra
-(pretty-hydra-define hydra-project (:color blue)
+(pretty-hydra-define hydra-project (:color blue :idle 1)
   ("Project"
    (("SPC" project-switch-project "switch")
     ("t" eat-project "terminal")
@@ -1035,7 +1106,7 @@ library/userland functions"
    )
   )
 ;; ;;;;; Projectile Hydra
-;; (defhydra hydra-projectile (:color blue)
+;; (defhydra hydra-projectile (:color blue :idle 1)
 ;;   ("SPC" projectile-switch-project)
 ;;   ("a" projectile-add-known-project)
 ;;   ("i" projectile-invalidate-cache)
@@ -1044,7 +1115,7 @@ library/userland functions"
 ;; )
 
 ;;;;; Outline/Org Hydra
-(pretty-hydra-define hydra-outline (:color blue)
+(pretty-hydra-define hydra-outline (:color blue :idle 1)
   ("Edit"
    (("m" outline-promote "promote")
     ("i" outline-demote "demote")
@@ -1061,7 +1132,7 @@ library/userland functions"
    )
   )
 
-(pretty-hydra-define hydra-org-latex  (:color blue)
+(pretty-hydra-define hydra-org-latex  (:color blue :idle 1)
   ("resize"
    (("e" xenops-increase-size "+" :color red)
     ("n" xenops-decrease-size "-" :color red))
@@ -1072,13 +1143,13 @@ library/userland functions"
 
 
 ;; ;;;;; LSP Hydra
-;; (defhydra hydra-lsp (:color blue)
+;; (defhydra hydra-lsp (:color blue :idle 1)
 ;;   ("r" lsp-rename)
 ;;   ("e" consult-lsp-diagnostics)
 ;; )
 
 ;;;;; Go Hydra
-(pretty-hydra-define hydra-go (:color blue)
+(pretty-hydra-define hydra-go (:color blue :idle 1)
   ("Go"
    (("f" find-file-at-point "file")
     ("d" xref-find-definitions "definition")
@@ -1091,12 +1162,12 @@ library/userland functions"
     ("e" evil-previous-mark-line "previous marker")
     ("l" evil-show-marks "list markers"))
    "Other"
-    (("SPC" consult-imenu "consult"))
+   (("SPC" consult-imenu "consult"))
    )
   )
 
 ;;;;; Eglot Hydra
-(pretty-hydra-define hydra-eglot (:color blue)
+(pretty-hydra-define hydra-eglot (:color blue :idle 1)
   ("Eglot"
    (("f" eglot-code-action-quickfix "quickfix")
     ("d" eldoc "doc")
@@ -1112,3 +1183,8 @@ library/userland functions"
 
 
 
+(put 'narrow-to-region 'disabled nil)
+
+;; Local Variables:
+;; eval: (outline-minor-mode)
+;; End:
