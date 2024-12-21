@@ -30,6 +30,9 @@
   (load bootstrap-file nil 'nomessage))
 
 ;;; Misc.
+(setq load-path  (append (list "~/.emacs.d/load" ) load-path))
+
+
 (setq ring-bell-function 'ignore)	; Turn off beep
 
 ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
@@ -80,8 +83,8 @@
 
 (global-visual-line-mode)
 
-
-
+(straight-use-package 'popwin)
+(popwin-mode)
 
 (straight-use-package
  '(eat :files ("*.el" ("term" "term/*.el") "*.texi"
@@ -89,7 +92,6 @@
                ("terminfo/65" "terminfo/65/*")
                ("integration" "integration/*")
                (:exclude ".dir-locals.el" "*-tests.el"))))
-
 
 ;;;; Org mode
 ;;;;; outshine
@@ -105,6 +107,12 @@
 (add-hook 'org-mode-hook 'org-bullets-mode)
 (add-hook 'org-mode-hook 'variable-pitch-mode)
 (set-face-attribute 'variable-pitch nil :family "DejaVu Serif" :height 1.1)
+
+;;;;; org plantuml
+(straight-use-package 'plantuml-mode)
+(setq org-plantuml-jar-path (expand-file-name "plantuml.jar"))
+(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+(org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t)))
 
 ;;;;; org latex
 (straight-use-package 'cdlatex)
@@ -210,6 +218,13 @@
       read-buffer-completion-ignore-case t
       completion-ignore-case t)
 
+(straight-use-package 'vertico-posframe)
+(vertico-posframe-mode)
+(setq vertico-posframe-parameters
+      '((internal-border-width . 2)
+	))
+(set-face-attribute 'vertico-posframe-border nil :background "#3c3836")
+
 (straight-use-package 'savehist)        ; Save history for completion framework
 (savehist-mode)
 
@@ -250,6 +265,7 @@
 
 ;;;; Direnv
 (straight-use-package 'direnv)
+(setq direnv-always-show-summary nil)
 (direnv-mode)
 
 ;;;; Completion
@@ -259,18 +275,17 @@
 
 (setq corfu-auto 't)
 (setq corfu-auto        t
-      corfu-auto-delay  0
+      corfu-auto-delay  0.1
       corfu-auto-prefix 3)
 (keymap-unset corfu-map "RET")
 (add-hook 'prog-mode-hook 'corfu-mode)
 
 
-;;;; Tree sitter
-;; (require 'treesit)
-;; (straight-use-package 'treesit-auto)
-;; (require 'treesit-auto)
-;; (global-treesit-auto-mode)
-;; (setq treesit-auto-install 'prompt)
+;;Tree sitter
+(require 'treesit)
+(straight-use-package 'treesit-auto)
+(global-treesit-auto-mode)
+(setq treesit-auto-install 'prompt)
 
 ;;;; LSP
 ;; (setq read-process-output-max (* 1024 1024)) ; Better performance
@@ -278,6 +293,7 @@
 ;; (setq lsp-headerline-breadcrumb-segments '(project file symbols))
 ;; (straight-use-package 'consult-lsp)
 (straight-use-package 'eglot)
+(setq eldoc-idle-delay 0)
 
 ;; ;;;; Yasnippet
 ;; (straight-use-package 'yasnippet)
@@ -298,6 +314,11 @@
 (straight-use-package 'magit)
 
 ;;; Language modes
+;;;; Scilab mode
+(require 'scilab)
+(add-hook 'scilab-mode-hook (lambda () (load "scilab-startup")))
+;; (setq scilab-shell-command "flatpak run org.scilab.Scilab -nw")
+
 ;;;; Arduino-mode
 (straight-use-package 'arduino-mode)
 ;; (define-derived-mode my/arduino-micro-mode c-mode "arduino"
@@ -471,27 +492,27 @@
 ;; (add-hook 'org-mode-hook 'visual-line-mode)
 
 ;;;; Indenting guide
-(straight-use-package 'highlight-indent-guides)
-(add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-(setq highlight-indent-guides-method 'character)
-(setq highlight-indent-guides-auto-character-face-perc 30)
-(setq highlight-indent-guides-responsive 'top)
-(setq highlight-indent-guides-delay 0)
-(setq highlight-indent-guides-auto-top-character-face-perc 60)
+;; (straight-use-package 'highlight-indent-guides)
+;; (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+;; (setq highlight-indent-guides-method 'character)
+;; (setq highlight-indent-guides-auto-character-face-perc 30)
+;; (setq highlight-indent-guides-responsive 'top)
+;; (setq highlight-indent-guides-delay 0)
+;; (setq highlight-indent-guides-auto-top-character-face-perc 60)
 
-;;;; Modeline
-(straight-use-package 'doom-modeline)
-(setq doom-modeline-height 31)
-(setq doom-modeline-bar-width 8)
-(setq doom-modeline-buffer-file-name-style 'truncate-nil)
-(setq doom-modeline-buffer-state-icon nil)
-(setq doom-modeline-buffer-encoding nil)
+;; Modeline
+; (straight-use-package 'doom-modeline)
+; (setq doom-modeline-height 31)
+; (setq doom-modeline-bar-width 8)
+; (setq doom-modeline-buffer-file-name-style 'truncate-nil)
+; (setq doom-modeline-buffer-state-icon nil)
+; (setq doom-modeline-buffer-encoding nil)
 (display-battery-mode)
 (setq display-time-24hr-format t)
 (display-time)
 (straight-use-package 'exwm-modeline)
 (add-hook 'exwm-init-hook #'exwm-modeline-mode)
-(doom-modeline-mode)
+;; (doom-modeline-mode)
 
 ;;;; Outline
 (set-face-attribute 'outline-1 nil :inherit 'org-level-1)
@@ -587,35 +608,35 @@ library/userland functions"
 	("XXX" font-lock-constant-face bold)))
 (global-hl-todo-mode)
 
-;; ;;;; Symbols
-;; ;; NOTE https://raw.githubusercontent.com/jming422/fira-code-mode/master/fonts/FiraCode-Regular-Symbol.otf
-;; ;;;;; Fira Code ligatures
+;;;; Symbols
+;; NOTE https://raw.githubusercontent.com/jming422/fira-code-mode/master/fonts/FiraCode-Regular-Symbol.otf
+;;;;; Fira Code ligatures
 ;; (add-hook 'haskell-mode-hook 'my-set-hasklig-ligatures)
-;; (straight-use-package '(ligature :type git :host github :repo "mickeynp/ligature.el"))
-;; (global-ligature-mode)
+(straight-use-package '(ligature :type git :host github :repo "mickeynp/ligature.el"))
+(global-ligature-mode)
 ;; ;;;;;; Fundamental mode
 ;; (ligature-set-ligatures 't '("www" "Fl" "Tl" "fi" "fj" "fl"))
 ;; ;;;;;; Prog mode
-;; (ligature-set-ligatures 'prog-mode '("++" "--" "**" "&&" "||" "||="
-;; 				     "->" "=>" "::" "__"
-;; 				     "==" "===" "!=" "=/="
-;; 				     "<<" "<<<" ">>" ">>>" "|=" "^="
-;; 				     "<=" ">=" "<=>"
-;; 				     ":="
-;; 				     ))
-;; ;;;;;; Org-mode
-;; (ligature-set-ligatures 'org-mode '("<=" ">=" "<=>"))
-;; ;;;;;; HTML
-;; (ligature-set-ligatures '(html-mode nxml-mode web-mode) '("</" "<!--" "</>" "-->" "/>"))
-;; ;;;;;; Emacs lisp
-;; (ligature-set-ligatures 'emacs-lisp-mode '(";;"))
-;; ;;;;; Prettify symbols mode
-;; (global-prettify-symbols-mode)
-;; ;;;;;; Emacs lisp
-;; (add-hook 'emacs-lisp-mode-hook (lambda () (setq prettify-symbols-alist '(
-;; 									  ("lambda" . ?λ)
-;; 									  ))))
 
+(ligature-set-ligatures '(prog-mode text-mode) '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                                     ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                     "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                     "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                     "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                     "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                     "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                     "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                     "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+;; Prettify symbols mode
+(global-prettify-symbols-mode)
+;;; Emacs lisp
+(add-hook 'emacs-lisp-mode-hook (lambda () (setq prettify-symbols-alist '(("lambda" . "λ")
+								     ("interactive" . "")
+								     ;; ("lambda () (interactive)" . "λ")
+								     ))))
+;; (add-hook 'org-mode-hook (lambda () (setq prettify-symbols-alist '(("TODO" . "󰅇")
+;; 							      ("DONE" . "󰅎")))))
 ;;; My functions and modes
 ;; ;;;; mkoppg
 ;; (defun mkoppg (fmt)
@@ -713,7 +734,7 @@ library/userland functions"
 
 (add-hook 'text-mode-hook #'center-document-mode)
 (add-hook 'prog-mode-hook #'center-document-mode)
-(add-hook 'text-mode-hook (lambda () (setq center-document-desired-width 90)))
+(add-hook 'text-mode-hook (lambda () (setq center-document-desired-width 120)))
 (add-hook 'prog-mode-hook (lambda () (setq center-document-desired-width 120)))
 
 
@@ -729,14 +750,17 @@ library/userland functions"
   )
 ;;; Keybinds
 ;;;; Keybind Packages
+;; (require 's)
 (straight-use-package 'meow)
+(straight-use-package 'combobulate)
+;; (straight-use-package 'paredit)
 
 (require 'meow)
 (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
 (meow-motion-overwrite-define-key
- ;; Use e to move up, n to move down.
- ;; Since special modes usually use n to move down, we only overwrite e here.
+ '("n" . meow-next)
  '("e" . meow-prev)
+ '("SPC" . hydra-leader/body)
  '("<escape>" . ignore))
 
 (defun meow-negative-find () (interactive)
@@ -749,7 +773,7 @@ library/userland functions"
        ;; (call-interactively 'negative-argument))
        (if meow--selection
 	   (call-interactively 'meow-reverse)
-	 (cond ((org-at-heading-p) (call-interactively 'org-cycle))
+	 (cond ((if (eq major-mode 'org-mode) (org-at-heading-p) nil) (call-interactively 'org-cycle))
 	       (t (call-interactively 'negative-argument)))))
 
 (defun narrow-dwim () (interactive)
@@ -774,13 +798,15 @@ library/userland functions"
         (meow--switch-state 'motion))
     (meow--switch-state 'insert)
     (goto-char (line-end-position))
-    (meow--execute-kbd-macro "<return>")))
+    (call-interactively 'newline)))
 
 
 ;; (defun meow-esc-dwim () (interactive)
 ;;        (if meow--selection
 ;; 	   (call-interactively 'meow-cancel-selection)
 ;; 	 (call-interactively 'meow-append)))
+(dolist (k '("C-i" "C-m"))
+  (define-key input-decode-map (kbd k) (kbd (concat "<" k ">"))))
 
 (meow-leader-define-key
  '("?" . meow-cheatsheet)
@@ -829,6 +855,7 @@ library/userland functions"
  '("a" . meow-insert)
  '("A" . meow-open-above)
  '("r" . meow-replace)
+ '("R" . undo-redo)
  '("s" . meow-find)
  '("S" . meow-negative-find)
  '("t" . meow-append)
@@ -865,13 +892,13 @@ library/userland functions"
  )
 
 (meow-define-keys 'insert
-  '("<return>" . newline)
-  
-  '("C-m" . meow-left)
+  '("<C-m>" . meow-left)
   '("C-n" . next-line)
   '("C-e" . meow-prev)
-  '("C-i" . meow-right)
+  '("<C-i>" . meow-right)
   )
+
+;; (define-key prog-mode-map (kbd "<return>") #'newline)
 
 (setq meow-keypad-leader-dispatch "H-C-M-1") ; More or less disable keypad
 ;; (define-key mode-specific-map (kbd "t") #'toggle-narrow-dwim)
@@ -888,14 +915,17 @@ library/userland functions"
 (define-key org-mode-map (kbd "M-i") #'org-metaright)
 (define-key org-mode-map (kbd "C-M-m") #'org-shiftright)
 (define-key org-mode-map (kbd "C-M-i") #'org-shiftleft)
-(define-key org-mode-map (kbd "C-m") #'outline-up-heading)
+(define-key org-mode-map (kbd "<C-m>") #'outline-up-heading)
+(define-key org-mode-map (kbd "<return>") #'newline)
 (define-key org-mode-map (kbd "C-n") #'outline-forward-same-level)
 (define-key org-mode-map (kbd "C-e") #'outline-backward-same-level)
-(define-key org-mode-map (kbd "C-i") #'outline-next-visible-heading)
-(define-key org-mode-map (kbd "M-<return>") #'org-meta-return)
+(define-key org-mode-map (kbd "<C-i>") #'outline-next-visible-heading)
+(define-key org-mode-map (kbd "M-<return>") (lambda () (interactive) (org-meta-return) (meow-append)))
+(define-key org-mode-map (kbd "C-<return>") (lambda () (interactive) (org-insert-heading-respect-content) (meow-append)))
+
 
 ;; (define-key org-cdlatex-mode-map (kbd "<tab>") #'cdlatex-tab)
-(define-key org-cdlatex-mode-map (kbd "C-d") #'cdlatex-dollar)
+(define-key org-cdlatex-mode-map (kbd "C-d") (lambda () (interactive) (cdlatex-dollar) (meow-insert)))
 (define-key org-cdlatex-mode-map (kbd "C-a") #'(lambda () (interactive) (cdlatex-environment "align*")))
 (define-key org-cdlatex-mode-map (kbd "C-s") #'cdlatex-math-symbol)
 (define-key org-cdlatex-mode-map (kbd "C-f") #'cdlatex-math-modify)
@@ -904,6 +934,8 @@ library/userland functions"
 (define-key outline-minor-mode-map (kbd "C-n") #'outline-forward-same-level)
 (define-key outline-minor-mode-map (kbd "C-e") #'outline-backward-same-level)
 (define-key outline-minor-mode-map (kbd "C-i") #'outline-next-visible-heading)
+
+;; (define-key eshell-mode-map (kbd "RET") #'eshell-send-input)
 
 (setq meow-goto-line-function 'consult-goto-line)
 (setq meow-use-clipboard t)
@@ -934,12 +966,6 @@ library/userland functions"
 (straight-use-package 'pretty-hydra)
 
 
-;; ;;;;; Hydras
-;; (general-def '(normal visual motion)
-;;   "SPC" 'hydra-leader/body)
-;; (general-def '(insert replace operator)
-;;   "C-SPC" 'hydra-leader/body)
-
 ;; ;;;;; DocView
 ;; (general-def 'doc-view-mode-map
 ;;   "SPC"  'hydra-leader/body
@@ -955,22 +981,6 @@ library/userland functions"
 ;;   "e" 'pdf-view-previous-page-command
 ;;   "gg" 'pdf-view-first-page
 ;;   "G" 'pdf-view-last-page
-;;   )
-
-;; ;;;;; Dashboard
-;; (general-def dashboard-mode-map
-;;   "r" 'dashboard-jump-to-recents
-;;   "p" 'dashboard-jump-to-projects
-;;   "n" 'next-line
-;;   "e" 'previous-line
-;;   "." 'find-file
-;;   "SPC" 'hydra-leader/body
-;;   )
-
-;; ;;;;; Magit
-;; (general-def magit-status-mode-map
-;;   "n" 'magit-section-forward
-;;   "e" 'magit-section-backward
 ;;   )
 
 ;;;;; EXWM
@@ -1057,7 +1067,8 @@ library/userland functions"
    (("SPC" recentf "recent file")
     ("." find-file "find file")
     ("t" eat "term")
-    ("r" async-shell-command "run"))
+    ("r" async-shell-command "run")
+    ("d" dired "dired"))
    )
   )
 
@@ -1185,6 +1196,3 @@ library/userland functions"
 
 (put 'narrow-to-region 'disabled nil)
 
-;; Local Variables:
-;; eval: (outline-minor-mode)
-;; End:
