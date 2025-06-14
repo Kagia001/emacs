@@ -29,24 +29,37 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(straight-use-package 'project) ; workaround for https://github.com/radian-software/straight.el/issues/1146
+
 ;;; Misc.
 (setq load-path  (append (list "~/.emacs.d/load" ) load-path))
+(let ((default-directory "~/.emacs.d/load"))
+  (normal-top-level-add-subdirs-to-load-path))
 
+;; Don't clutter up directories with files~
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup-files")))
+
+;; Don't clutter with #files either
+(setq auto-save-file-name-transforms
+      `((".*" ,(expand-file-name (concat "~/.emacs.d/" "backup-file")))))
 
 (setq ring-bell-function 'ignore)	; Turn off beep
 
+(straight-use-package 'nameless)
+(add-hook 'emacs-lisp-mode-hook #'nameless-mode)
 ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
 
 ;; (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 ;; (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 ;; (setq scroll-step 1) ;; keyboard scroll one line at a time
 
-(pixel-scroll-precision-mode)
+(straight-use-package '(ultra-scroll :type git :host github :repo "jdtsmith/ultra-scroll"))
+(setq scroll-conservatively 101)
+(ultra-scroll-mode)
+
 
 ;; (desktop-save-mode 1)		; Save open windows and buffers
 ;; (setq frame-resize-pixelwise t) 	; Play nice with tiling wms
-
-(straight-use-package 'project)		; eglot breaks without this
 
 (straight-use-package 'smartparens)	; Close brackets
 (require 'smartparens-config)
@@ -55,20 +68,25 @@
 (straight-use-package 'pdf-tools)
 (pdf-loader-install) ; On demand loading, leads to faster startup time
 
+(straight-use-package '(screenshot :host github :repo "tecosaur/screenshot"))
 
 (straight-use-package 'dashboard)
 (dashboard-setup-startup-hook)
 (setq dashboard-startup-banner 'logo)
-(setq dashboard-projects-backend 'project-el)
+(setq dashboard-projects-backend 'projectile)
 (setq dashboard-items '((recents  . 5)
                         (projects . 5)))
 (add-hook 'dashboard-mode 'dashboard-jump-to-recents)
 
 (savehist-mode)
 
+;;(require ')
 (setq dired-recursive-deletes 'always)
 (setq dired-dwim-target 't)
 (setq delete-by-moving-to-trash 't)
+(when (executable-find "unrar")		; support unraring in dired
+  (require 'dired-aux)
+  (add-to-list 'dired-compress-file-suffixes '("\\.rar\\'" "" "unrar x %i")))
 
 (straight-use-package 'nix-mode)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
@@ -78,13 +96,37 @@
 
 (straight-use-package 'bluetooth)
 
+;; (straight-use-package 'tramp-container) ;; gives a warning but whatever
+(require 'tramp-container)
+
 (recentf-mode)				; dashboard mode forgets tramp files else
 (add-hook 'buffer-list-update-hook #'recentf-track-opened-file)
+(add-hook 'find-file-hook #'recentf-save-list)
+(setq recentf-max-saved-items 1000)
 
 (global-visual-line-mode)
 
-(straight-use-package 'popwin)
-(popwin-mode)
+;; (straight-use-package 'popwin)
+;; (setq popwin:popup-window-position 'right)
+;; (popwin-mode)
+;; (push '("*Help*" :noselect t) popwin:special-display-config)
+
+(defun pmx-split-window-conservatively (&optional window)
+  "Split WINDOW only if absolutely necessary.
+Only split if there is no split, and only split into left & right
+windows."
+  (interactive)
+  (let ((window (or window (selected-window))))
+    (when (and ;; (window-splittable-p window t) ;idk why but this doesnt really work
+           (= (length (window-list)) 1))
+      (with-selected-window window
+        (split-window-right)))))
+
+(setq split-window-preferred-function #'pmx-split-window-conservatively)
+
+;; Did I mention that I have a preferred function?  Could you like, not?
+(setq warning-display-at-bottom nil)
+(setq ediff-split-window-function 'split-window-horizontally)
 
 (straight-use-package
  '(eat :files ("*.el" ("term" "term/*.el") "*.texi"
@@ -129,17 +171,25 @@
 ;;;;; CDLaTeX
 (setq cdlatex-command-alist
       '(("vc" "Insert \\vec{}" "\\vec{?}" cdlatex-position-cursor nil nil t)
-	("int" "Insert integral" "\\int \\limits_{?}^{} \\,{}" cdlatex-position-cursor nil nil t)
+	("intinf" "Insert integral from -\\infty to \\infty" "\\int\\limits_{-\\infty}^{\\infty} ?" cdlatex-position-cursor nil nil t)
+	("suminf" "Infinite sum" "\\sum\\limits_{?=-\\infty}^{\\infty}" cdlatex-position-cursor nil nil t)
+	("prodl" "Product w limints" "\\prod\\limits_{?}^{}" cdlatex-position-cursor nil nil t)
 	("ali" "Insert align* env" "" cdlatex-environment ("align*") t nil)
 	("equ" "Insert equation* env" "" cdlatex-environment ("equation*") t nil)
+
+	("pmat" "insert parenthesees matrix" "" cdlatex-environment ("pmatrix") nil t)
+	("bmat" "insert square braket matrix" "" cdlatex-environment ("bmatrix") nil t)
 	))
 
 (setq cdlatex-math-modify-alist
-      '((98 "\\mathbb" nil t nil nil)))
+      '((?b "\\mathbb" nil t nil nil)))
 
 (setq cdlatex-math-symbol-alist
-      '((108 ("\\lambda" "\\ell" "\\laplace"))
-	(102 ("\\phi" "\\varphi" "\\fourier"))))
+      '((?l ("\\lambda" "\\ell" "\\laplace"))
+	(?f ("\\phi" "\\varphi" "\\fourier"))
+	(?. ("\\cdot" "\\dots"))
+	(?\r ("\\\\\n"))
+	(?\t (" & "))))
 
 (setq cdlatex-env-alist
       '(("equation*" "\\begin{equation*}
@@ -155,13 +205,26 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(auth-source-save-behavior nil)
- '(custom-enabled-themes '(dracula))
  '(custom-safe-themes
-   '("a5270d86fac30303c5910be7403467662d7601b821af2ff0c4eb181153ebfc0a" "fee7287586b17efbfda432f05539b58e86e059e78006ce9237b8732fde991b4c" "4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3" default))
+   '("a5270d86fac30303c5910be7403467662d7601b821af2ff0c4eb181153ebfc0a"
+     "fee7287586b17efbfda432f05539b58e86e059e78006ce9237b8732fde991b4c"
+     "4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3"
+     default))
  '(org-agenda-files
-   '("/home/karl/Documents/uni/wi24/orga.org" "/home/karl/Documents/uni/wi24/sus/tut1.org"))
+   '("/home/karl/Documents/uni/wi24/orga.org"
+     "/home/karl/Documents/uni/wi24/sus/tut1.org"))
  '(org-babel-load-languages '((emacs-lisp . t) (C . t) (python . t)))
  '(org-confirm-babel-evaluate nil)
+ '(safe-local-variable-directories '("/home/karl/Documents/cerberus/"))
+ '(safe-local-variable-values '((vhdl-basic-offset . 4)))
+ '(screenshot-border-width 20)
+ '(screenshot-font-size 12)
+ '(screenshot-line-numbers-p nil)
+ '(screenshot-radius 10)
+ '(screenshot-shadow-offset-horizontal -2)
+ '(screenshot-shadow-offset-vertical 6)
+ '(screenshot-shadow-radius 5)
+ '(screenshot-text-only-p nil)
  '(warning-suppress-types '((frameset))))
 
 ;;;;; org agenda
@@ -179,9 +242,9 @@
 ;;; EXWM
 (straight-use-package 'exwm)
 (require 'exwm)
-(setq exwm-workspace-index-map (lambda (i) (number-to-string (1+ i))))
-(setq my/exwm-normal-workspace-number 4)
-(setq my/exwm-special-workspace-number 1)
+(setq workspace-index-map (lambda (i) (number-to-string (1+ i))))
+(setq my/exwm-normal-workspace-number 5)
+(setq my/exwm-special-workspace-number 2)
 (setq exwm-workspace-number (+ my/exwm-normal-workspace-number my/exwm-special-workspace-number))
 
 ;; Make buffer name more meaningful
@@ -192,22 +255,17 @@
 (setq exwm-layout-show-all-buffers t)
 (setq exwm-workspace-show-all-buffers t)
 
-(setq exwm-input-simulation-keys
-      '(([a] . [b])
-	))
-
 (setq exwm-manage-configurations
-      '(((string= exwm-class-name "Spotify") workspace 4)
+      `(((string= exwm-class-name "Spotify") workspace ,my/exwm-normal-workspace-number)
+	((string= exwm-class-name "firefox") workspace ,(1+ my/exwm-normal-workspace-number))
         ;; ((string= exwm-class-name "firefox") char-mode t)
 	))
 
 
 (add-hook 'exwm-init-hook (lambda () (interactive)
 			    (async-shell-command "spotify")
+			    (async-shell-command "firefox")
 			    ))
-
-
-
 
 
 ;;; Completion Framework
@@ -218,12 +276,12 @@
       read-buffer-completion-ignore-case t
       completion-ignore-case t)
 
-(straight-use-package 'vertico-posframe)
-(vertico-posframe-mode)
-(setq vertico-posframe-parameters
-      '((internal-border-width . 2)
-	))
-(set-face-attribute 'vertico-posframe-border nil :background "#3c3836")
+;; (straight-use-package 'vertico-posframe)
+;; (vertico-posframe-mode)
+;; (setq vertico-posframe-parameters
+;;       '((internal-border-width . 2)
+;; 	))
+;; (set-face-attribute 'vertico-posframe-border nil :background "#3c3836")
 
 (straight-use-package 'savehist)        ; Save history for completion framework
 (savehist-mode)
@@ -252,6 +310,10 @@
                  #'completion--in-region)
                args)))
 
+(defun consult-info-emacs ()
+  "Search through Emacs info pages."
+  (interactive)
+  (consult-info "emacs" "efaq" "elisp" "cl" "compat"))
 
 (straight-use-package 'orderless)       ; Complete by searching for space-separated snippets
 (setq completion-styles '(orderless basic)
@@ -260,30 +322,34 @@
 
 ;;; IDE tools
 ;;;; Project
-(require 'project)
-(setq project-switch-commands 'project-find-file)
+;; (require 'project)
+;; (setq project-switch-commands 'project-find-file)
+(straight-use-package 'projectile)
 
+
+(straight-use-package 'python-pytest)
 ;;;; Direnv
 (straight-use-package 'direnv)
 (setq direnv-always-show-summary nil)
 (direnv-mode)
 
 ;;;; Completion
-(straight-use-package 'corfu)
-(straight-use-package 'corfu-prescient)
-(corfu-prescient-mode)
+;; (straight-use-package 'corfu)
+;; (straight-use-package 'corfu-prescient)
+;; (corfu-prescient-mode)
 
-(setq corfu-auto 't)
-(setq corfu-auto        t
-      corfu-auto-delay  0.1
-      corfu-auto-prefix 3)
-(keymap-unset corfu-map "RET")
-(add-hook 'prog-mode-hook 'corfu-mode)
+;; (setq corfu-auto 't)
+;; (setq corfu-auto        t
+;;       corfu-auto-delay  0.1
+;;       corfu-auto-prefix 3)
+;; (keymap-unset corfu-map "RET")
+;; (add-hook 'prog-mode-hook 'corfu-mode)
 
 
 ;;Tree sitter
 (require 'treesit)
 (straight-use-package 'treesit-auto)
+(require 'treesit-auto)			; needed for some reason
 (global-treesit-auto-mode)
 (setq treesit-auto-install 'prompt)
 
@@ -293,7 +359,14 @@
 ;; (setq lsp-headerline-breadcrumb-segments '(project file symbols))
 ;; (straight-use-package 'consult-lsp)
 (straight-use-package 'eglot)
+(add-hook 'eglot-inlay-hints-mode-hook (lambda () (when eglot-inlay-hints-mode (eglot-inlay-hints-mode -1))))
+
 (setq eldoc-idle-delay 0)
+
+
+;; DAP
+(straight-use-package 'dap-mode)
+
 
 ;; ;;;; Yasnippet
 ;; (straight-use-package 'yasnippet)
@@ -314,9 +387,35 @@
 (straight-use-package 'magit)
 
 ;;; Language modes
+;;;; VHDL
+(straight-use-package 'vhdl-ext)
+(setq vhdl-ext-feature-list
+      '(font-lock
+        xref
+        capf
+        hierarchy
+        eglot
+        lsp
+        ;lsp-bridge
+        ;lspce
+        ;flycheck
+        beautify
+        navigation
+        template
+        compilation
+        imenu
+        which-func
+        hideshow
+        time-stamp
+        ports))
+(require 'vhdl-ext)
+;; (add-hook 'vhdl-ext-mode-hook (lambda () (vhdl-ext-eglot-set-server 've-rust-hdl))) ; Have to set in hook in case of direnv
+(vhdl-ext-mode-setup)
+(setq vhdl-modify-date-on-saving nil)
+(add-hook 'vhdl-mode-hook #'vhdl-ext-mode)
 ;;;; Scilab mode
-(require 'scilab)
-(add-hook 'scilab-mode-hook (lambda () (load "scilab-startup")))
+					;(require 'scilab)
+					;(add-hook 'scilab-mode-hook (lambda () (load "scilab-startup")))
 ;; (setq scilab-shell-command "flatpak run org.scilab.Scilab -nw")
 
 ;;;; Arduino-mode
@@ -501,12 +600,12 @@
 ;; (setq highlight-indent-guides-auto-top-character-face-perc 60)
 
 ;; Modeline
-; (straight-use-package 'doom-modeline)
-; (setq doom-modeline-height 31)
-; (setq doom-modeline-bar-width 8)
-; (setq doom-modeline-buffer-file-name-style 'truncate-nil)
-; (setq doom-modeline-buffer-state-icon nil)
-; (setq doom-modeline-buffer-encoding nil)
+					; (straight-use-package 'doom-modeline)
+					; (setq doom-modeline-height 31)
+					; (setq doom-modeline-bar-width 8)
+					; (setq doom-modeline-buffer-file-name-style 'truncate-nil)
+					; (setq doom-modeline-buffer-state-icon nil)
+					; (setq doom-modeline-buffer-encoding nil)
 (display-battery-mode)
 (setq display-time-24hr-format t)
 (display-time)
@@ -618,16 +717,81 @@ library/userland functions"
 ;; (ligature-set-ligatures 't '("www" "Fl" "Tl" "fi" "fj" "fl"))
 ;; ;;;;;; Prog mode
 
-(ligature-set-ligatures '(prog-mode text-mode) '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
-                                     ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
-                                     "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
-                                     "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
-                                     "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
-                                     "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
-                                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
-                                     "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
-                                     "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
-                                     "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+;; (ligature-set-ligatures '(prog-mode text-mode) '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+;; 						 ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+;; 						 "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+;; 						 "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+;; 						 "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+;; 						 "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+;; 						 "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+;; 						 "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+;; 						 "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+;; 						 "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+(ligature-set-ligatures 'prog-mode
+                        '(;; == === ==== => =| =>>=>=|=>==>> ==< =/=//=// =~
+                          ;; =:= =!=
+                          ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
+                          ;; ;; ;;;
+                          (";" (rx (+ ";")))
+                          ;; && &&&
+                          ("&" (rx (+ "&")))
+                          ;; !! !!! !. !: !!. != !== !~
+                          ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
+                          ;; ?? ??? ?:  ?=  ?.
+                          ("?" (rx (or ":" "=" "\." (+ "?"))))
+                          ;; %% %%%
+                          ("%" (rx (+ "%")))
+                          ;; |> ||> |||> ||||> |] |} || ||| |-> ||-||
+                          ;; |->>-||-<<-| |- |== ||=||
+                          ;; |==>>==<<==<=>==//==/=!==:===>
+                          ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]"
+                                          "-" "=" ))))
+                          ;; \\ \\\ \/
+                          ("\\" (rx (or "/" (+ "\\"))))
+                          ;; ++ +++ ++++ +>
+                          ("+" (rx (or ">" (+ "+"))))
+                          ;; :: ::: :::: :> :< := :// ::=
+                          (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
+                          ;; // /// //// /\ /* /> /===:===!=//===>>==>==/
+                          ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!"
+                                          "="))))
+                          ;; .. ... .... .= .- .? ..= ..<
+                          ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
+                          ;; -- --- ---- -~ -> ->> -| -|->-->>->--<<-|
+                          ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
+                          ;; *> */ *)  ** *** ****
+                          ("*" (rx (or ">" "/" ")" (+ "*"))))
+                          ;; www wwww
+                          ("w" (rx (+ "w")))
+                          ;; <> <!-- <|> <: <~ <~> <~~ <+ <* <$ </  <+> <*>
+                          ;; <$> </> <|  <||  <||| <|||| <- <-| <-<<-|-> <->>
+                          ;; <<-> <= <=> <<==<<==>=|=>==/==//=!==:=>
+                          ;; << <<< <<<<
+                          ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!"
+                                          "-"  "/" "|" "="))))
+                          ;; >: >- >>- >--|-> >>-|-> >= >== >>== >=|=:=>>
+                          ;; >> >>> >>>>
+                          (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
+                          ;; #: #= #! #( #? #[ #{ #_ #_( ## ### #####
+                          ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_"
+                                       (+ "#"))))
+                          ;; ~~ ~~~ ~=  ~-  ~@ ~> ~~>
+                          ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
+                          ;; __ ___ ____ _|_ __|____|_
+                          ("_" (rx (+ (or "_" "|"))))
+                          ;; Fira code: 0xFF 0x12
+                          ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
+                          ;; Fira code:
+                          "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"
+                          ;; The few not covered by the regexps.
+                          "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="))
+
+
+;; Enables ligature checks globally in all buffers. You can also do it
+;; per mode with `ligature-mode'.
+(global-ligature-mode t)
+(add-hook 'vhdl-mode-hook (lambda () (ligature-mode -1)))
+
 ;; Prettify symbols mode
 (global-prettify-symbols-mode)
 ;;; Emacs lisp
@@ -670,18 +834,35 @@ library/userland functions"
   )
 
 (setq my/exwm-toggle-special--last-ws 0)
-(defun my/exwm-toggle-special ()
+(defun my/exwm-toggle-special (&optional n)
   "toggle special workspace"
   (interactive)
-  (if (equal exwm-workspace-current-index my/exwm-normal-workspace-number)
+  (unless n (setq n 0))
+  (if (= exwm-workspace-current-index (+ n my/exwm-normal-workspace-number))
+      ;; Toggle out
       (exwm-workspace-switch my/exwm-toggle-special--last-ws)
-    (setq my/exwm-toggle-special--last-ws exwm-workspace-current-index)
-    (exwm-workspace-switch my/exwm-normal-workspace-number)))
+    (when (< exwm-workspace-current-index my/exwm-normal-workspace-number)
+      ;; Not special, save
+      (setq my/exwm-toggle-special--last-ws exwm-workspace-current-index))
+    ;; Toggle in
+    (exwm-workspace-switch (+ n my/exwm-normal-workspace-number))))
 
 (defun my/exwm-copy ()
   "send copy, uses priv fns so might break"
   (interactive)
   (exwm-input--fake-key ?\C-c))
+
+(defun my/eval-buffer ()
+  "Execute the current buffer as Lisp code.
+Top-level forms are evaluated with `eval-defun' so that `defvar'
+and `defcustom' forms reset their default values."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (forward-sexp)
+      (eval-defun nil))))
+
 
 ;; (require 'xdg)
 ;; (defun my/run-program ()
@@ -706,6 +887,9 @@ library/userland functions"
 ;;;; Center document
 (defvar center-document-desired-width 100
   "The desired width of a document centered in the window.")
+(add-hook 'org-mode-hook (lambda ()
+			   (make-local-variable 'center-document-desired-width)
+			   (setq center-document-desired-width 80)))
 
 (defun center-document--adjust-margins ()
   ;; Reset margins first before recalculating
@@ -750,13 +934,22 @@ library/userland functions"
   )
 ;;; Keybinds
 ;;;; Keybind Packages
-;; (require 's)
+					;(require 'ryo-combobulate)
+(require 'cerberus)
+					;(cerberus-global-mode)
 (straight-use-package 'meow)
-(straight-use-package 'combobulate)
+(straight-use-package 'meow-tree-sitter)
+(require 'meow-tree-sitter)
+(meow-tree-sitter-register-defaults)
+;; (straight-use-package 'combobulate)
 ;; (straight-use-package 'paredit)
 
 (require 'meow)
 (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+
+(add-to-list 'meow-mode-state-list '(eshell-mode . insert))
+(add-to-list 'meow-mode-state-list '(eat-mode . insert))
+
 (meow-motion-overwrite-define-key
  '("n" . meow-next)
  '("e" . meow-prev)
@@ -800,6 +993,13 @@ library/userland functions"
     (goto-char (line-end-position))
     (call-interactively 'newline)))
 
+(defun meow-interactive-next-thing (thing)
+  "Select the next THING."
+  (interactive (list (meow-thing-prompt "Next: ")))
+  (save-window-excursion
+    (meow-next-thing meow-symbol-thing '(select . transient) 1)))
+
+
 
 ;; (defun meow-esc-dwim () (interactive)
 ;;        (if meow--selection
@@ -834,16 +1034,28 @@ library/userland functions"
  '("7" . meow-expand-7)
  '("8" . meow-expand-8)
  '("9" . meow-expand-9)
+
+ '("<escape>" . meow-cancel-selection)
+ '("0" . meow-expand-0)
+ '("1" . meow-expand-1)
+ '("2" . meow-expand-2)
+ '("3" . meow-expand-3)
+ '("4" . meow-expand-4)
+ '("5" . meow-expand-5)
+ '("6" . meow_expand-6)
+ '("7" . meow-expand-7)
+ '("8" . meow-expand-8)
+ '("9" . meow-expand-9)
  
  '("<tab>" . meow-tab-dwim)
  '("q" . meow-quit)
  '("w" . meow-mark-word)
  '("W" . meow-mark-symbol)
- '("f" . meow-next-word)
- '("F" . meow-next-symbol)
+ '("f" . meow-next-symbol)
+ '("F" . meow-next-word)
  '("p" . meow-yank)
- '("b" . meow-back-word)
- '("B" . meow-back-symbol)
+ '("b" . meow-back-symbol)
+ '("B" . meow-back-word)
  '("j" . meow-join)
  '("l" . meow-line)
  '("L" . meow-negative-line)
@@ -892,16 +1104,21 @@ library/userland functions"
  )
 
 (meow-define-keys 'insert
+  ;; '("<tab>" . completion-at-point)
   '("<C-m>" . meow-left)
   '("C-n" . next-line)
   '("C-e" . meow-prev)
   '("<C-i>" . meow-right)
   )
 
+(meow-global-mode)
+
 ;; (define-key prog-mode-map (kbd "<return>") #'newline)
 
 (setq meow-keypad-leader-dispatch "H-C-M-1") ; More or less disable keypad
 ;; (define-key mode-specific-map (kbd "t") #'toggle-narrow-dwim)
+
+(define-key prog-mode-map (kbd "<tab>") #'completion-at-point)
 
 (define-key emacs-lisp-mode-map (kbd "C-<return>") #'eval-region)
 
@@ -920,13 +1137,13 @@ library/userland functions"
 (define-key org-mode-map (kbd "C-n") #'outline-forward-same-level)
 (define-key org-mode-map (kbd "C-e") #'outline-backward-same-level)
 (define-key org-mode-map (kbd "<C-i>") #'outline-next-visible-heading)
-(define-key org-mode-map (kbd "M-<return>") (lambda () (interactive) (org-meta-return) (meow-append)))
-(define-key org-mode-map (kbd "C-<return>") (lambda () (interactive) (org-insert-heading-respect-content) (meow-append)))
+(define-key org-mode-map (kbd "M-<return>") (lambda () (interactive) (org-meta-return) (meow-insert)))
+(define-key org-mode-map (kbd "C-<return>") (lambda () (interactive) (org-insert-heading-respect-content) (meow-insert)))
 
 
-;; (define-key org-cdlatex-mode-map (kbd "<tab>") #'cdlatex-tab)
+(define-key org-cdlatex-mode-map (kbd "<tab>") #'cdlatex-tab)
 (define-key org-cdlatex-mode-map (kbd "C-d") (lambda () (interactive) (cdlatex-dollar) (meow-insert)))
-(define-key org-cdlatex-mode-map (kbd "C-a") #'(lambda () (interactive) (cdlatex-environment "align*")))
+(define-key org-cdlatex-mode-map (kbd "C-a") (lambda () (interactive) (cdlatex-environment "align*")))
 (define-key org-cdlatex-mode-map (kbd "C-s") #'cdlatex-math-symbol)
 (define-key org-cdlatex-mode-map (kbd "C-f") #'cdlatex-math-modify)
 
@@ -957,7 +1174,7 @@ library/userland functions"
 
 
 
-(meow-global-mode 1)
+;; (meow-global-mode 1)
 
 ;; (straight-use-package 'general)         ; Keybind wrapper
 ;; (general-auto-unbind-keys)              ; Fixes some prefix key issues
@@ -993,6 +1210,8 @@ library/userland functions"
 
     (message "%s" (match-string 2 pactl-output))))
 
+;; C-d => C-c
+(exwm-input-set-simulation-key [?\C-d] [?\C-c])
 
 (setq exwm-input-global-keys
       `((,(kbd "S-ESC") . my/exwm-copy)
@@ -1016,9 +1235,10 @@ library/userland functions"
 	(,(kbd "s-e") . previous-buffer)
 	(,(kbd "s-i") . other-window)
 
-	(,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (let ((default-directory "~")) (async-shell-command "firefox")))))
+	;; (,(kbd "s-t") . (lambda () (interactive) (save-window-excursion (let ((default-directory "~")) (async-shell-command "")))))
 
 	(,(kbd "s-s") . my/exwm-toggle-special)
+	(,(kbd "s-t") . (lambda () (interactive) (my/exwm-toggle-special 1)))
 	(,(kbd "s-d") . kill-buffer-and-window)
 	(,(kbd "s-f") . exwm-layout-toggle-fullscreen)
 
@@ -1053,20 +1273,20 @@ library/userland functions"
     ("b" hydra-buffer/body "buffer")
     ("h" hydra-help/body "help")
     (";" execute-extended-command "M-x")
-    (":" pp-eval-expression "M-:")
+    ("'" pp-eval-expression "M-:")
     ("s" basic-save-buffer "save")		; Save
     ("<tab>" toggle-narrow-dwim "Toggle Narrowing"))
    ;; ("p" hydra-projectile/body)
    "editing"
    (("g" hydra-go/body "go")
     ("o" hydra-outline/body "outline")
-    ("p" hydra-project/body "project")
+    ("p" hydra-projectile/body "project")
     ("e" hydra-eglot/body "eglot")
     ("c" comment-dwim "comment"))
    "misc"
    (("SPC" recentf "recent file")
     ("." find-file "find file")
-    ("t" eat "term")
+    ("t" eshell "eshell")
     ("r" async-shell-command "run")
     ("d" dired "dired"))
    )
@@ -1091,7 +1311,8 @@ library/userland functions"
    (("SPC" consult-buffer "consult")
     ("k" kill-current-buffer "kill")
     ("b" mode-line-other-buffer "other")
-    ("i" my/indent-buffer "indent buffer"))
+    ("i" my/indent-buffer "indent buffer")
+    ("e" my/eval-buffer "eval buffer"))
    )
   )
 
@@ -1106,16 +1327,18 @@ library/userland functions"
    )
   )
 
-;;;;; Project Hydra
-(pretty-hydra-define hydra-project (:color blue :idle 1)
-  ("Project"
-   (("SPC" project-switch-project "switch")
-    ("t" eat-project "terminal")
-    ("c" project-compile "compile")
-    ("r" project-recompile "recompile")
-    ("m" magit "magit"))
-   )
-  )
+;;;;; Projectile Hydra
+(pretty-hydra-define hydra-projectile (:color blue :idle 1)
+  ("Projectile"
+   (("SPC" projectile-switch-project "switch")
+    ("a" projectile-add-known-project "add")
+    ("c" projectile-compile-project "compile")
+    ("g" consult-grep "replace")
+    ("m" magit "magit")
+    ("r" projectile-replace-regexp "replace")
+    ("s" projectile-save-project-buffers "save")
+    ("t" projectile-run-eshell "eshell"))))
+
 ;; ;;;;; Projectile Hydra
 ;; (defhydra hydra-projectile (:color blue :idle 1)
 ;;   ("SPC" projectile-switch-project)
@@ -1196,3 +1419,10 @@ library/userland functions"
 
 (put 'narrow-to-region 'disabled nil)
 
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+(put 'upcase-region 'disabled nil)
